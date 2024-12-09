@@ -36,7 +36,8 @@
   
   <script setup lang="ts">
   import { ref } from 'vue'
-  
+  import { useRuntimeConfig } from '#app'
+
   const registerEmail = ref('')
   const registerPassword = ref('')
   const registerResult = ref<any>(null)
@@ -48,8 +49,18 @@
   
   const subscriptionResult = ref<any>(null)
   
-  // Remplacez par l'URL de votre API
-  const API_URL = 'https://myapp-383194447870.europe-west9.run.app'
+  const config = useRuntimeConfig();
+  console.log('config: ', config);
+  console.log('config.public: ', config.public);
+
+  // Utilisez runtimeConfig.public.apiBase comme source de vérité
+  const API_URL = config.public.apiBase;
+  const apiBaseTest = config.public.apiBaseTest;
+  const apiBaseTest2 = config.public.apiBaseTest2;
+
+  console.log('API_URL from config:', API_URL);
+  console.log('API_URL from config test:', apiBaseTest);
+  console.log('API_URL from config test2:', apiBaseTest2);
   
   async function registerUser() {
     const res = await fetch(`${API_URL}/api/v1/users/`, {
