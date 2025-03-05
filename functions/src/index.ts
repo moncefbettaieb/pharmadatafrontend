@@ -12,9 +12,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Map des IDs de plans vers les IDs de prix Stripe
 const PRICE_MAP: { [key: string]: string } = {
-  'basic': 'prod_RibDkVUBfzGxfO',
-  'pro': 'prod_RibEg7kJdwI522',
-  'enterprise': 'prod_RibFR1RqX7xiXk'
+  'basic': 'price_1QpA1VIXSD1y6wP4P2wKrRLi',
+  'pro': 'price_1QpA28IXSD1y6wP4gQIaoY71',
+  'enterprise': 'price_1QpA2bIXSD1y6wP4LK3LyvSJ'
 }
 
 export const createSubscription = onCall({
