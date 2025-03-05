@@ -96,6 +96,7 @@ const selectPlan = async (plan) => {
 
     // Vérifier que la clé Stripe est disponible
     console.log('Clé publique Stripe:', config.public.stripePublicKey)
+    console.log('Clé secrete Stripe:', config.public.stripeSecretKey)
     if (!config.public.stripePublicKey) {
       console.error('Clé publique Stripe manquante dans la configuration')
       throw new Error('Configuration Stripe manquante')
