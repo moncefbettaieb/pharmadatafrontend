@@ -64,6 +64,7 @@ jobs:
           --set-env-vars FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
           --set-env-vars FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
           --set-env-vars STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+          --set-env-vars STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
           --allow-unauthenticated
 
     - name: Deploy to Prod

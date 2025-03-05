@@ -88,6 +88,8 @@ const selectPlan = async (plan) => {
     return
   }
 
+  console.log('Clé publique Stripe:', config.public.stripePublicKey)
+
   loading.value = true
   try {
     if (!$functions) {
