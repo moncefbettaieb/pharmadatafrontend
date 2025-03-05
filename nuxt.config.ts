@@ -22,9 +22,10 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    stripeSecretKey: process.env.STRIPE_SECRET_KEY,
     public: {
       apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:5001/votre-projet/us-central1',
-      stripePublicKey: process.env.STRIPE_PUBLIC_KEY,
+      stripePublicKey: '',
       firebaseConfig: {
         apiKey: process.env.FIREBASE_API_KEY,
         authDomain: process.env.FIREBASE_AUTH_DOMAIN,
