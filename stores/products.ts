@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { httpsCallable } from 'firebase/functions'
 
 interface Product {
   cip_code: string
@@ -20,14 +21,14 @@ export const useProductsStore = defineStore('products', {
       this.loading = true
       this.error = null
       try {
-        const config = useRuntimeConfig()
-        const response = await fetch(`${config.public.apiBaseUrl}/api/v1/products`, {
-          headers: {
-            'Authorization': `Bearer ${config.public.apiToken}`
-          }
-        })
-        if (!response.ok) throw new Error('Erreur lors de la récupération des produits')
-        this.products = await response.json()
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
+          throw new Error('Firebase Functions non initialisé')
+        }
+
+        const getProductsCall = httpsCallable($functions, 'getProducts')
+        const result = await getProductsCall()
+        this.products = result.data as Product[]
       } catch (error: any) {
         this.error = error.message
         throw error

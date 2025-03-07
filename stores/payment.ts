@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { loadStripe } from '@stripe/stripe-js'
-import { getFirestore, collection, addDoc } from 'firebase/firestore'
+import { httpsCallable } from 'firebase/functions'
 
 export const usePaymentStore = defineStore('payment', {
   state: () => ({
@@ -14,22 +14,21 @@ export const usePaymentStore = defineStore('payment', {
       this.error = null
       
       try {
-        const config = useRuntimeConfig()
-        const response = await fetch(`${config.public.apiBaseUrl}/api/v1/create-checkout-session`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${useAuthStore().user?.accessToken}`
-          },
-          body: JSON.stringify({ items })
-        })
-
-        if (!response.ok) {
-          throw new Error('Erreur lors de la création de la session de paiement')
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
+          throw new Error('Firebase Functions non initialisé')
         }
 
-        const { sessionId } = await response.json()
+        const config = useRuntimeConfig()
+        if (!config.public.stripePublicKey) {
+          throw new Error('La clé publique Stripe n\'est pas configurée')
+        }
+
+        const createCheckoutSessionCall = httpsCallable($functions, 'createCheckoutSession')
+        const result = await createCheckoutSessionCall({ items })
         
+        const { sessionId } = result.data as { sessionId: string }
+
         const stripe = await loadStripe(config.public.stripePublicKey)
         if (!stripe) {
           throw new Error('Erreur lors du chargement de Stripe')
@@ -44,25 +43,6 @@ export const usePaymentStore = defineStore('payment', {
         throw error
       } finally {
         this.loading = false
-      }
-    },
-
-    async saveOrder(sessionId: string, amount: number) {
-      const { $firebase } = useNuxtApp()
-      const db = getFirestore($firebase)
-      const authStore = useAuthStore()
-
-      try {
-        await addDoc(collection(db, 'orders'), {
-          userId: authStore.user?.uid,
-          stripeSessionId: sessionId,
-          amount,
-          status: 'completed',
-          createdAt: new Date()
-        })
-      } catch (error: any) {
-        console.error('Erreur lors de l\'enregistrement de la commande:', error)
-        throw error
       }
     }
   }
