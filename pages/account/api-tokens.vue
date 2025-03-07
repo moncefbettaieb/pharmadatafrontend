@@ -27,7 +27,8 @@
                 :disabled="apiStore.loading"
                 class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
               >
-                Révoquer le token
+                <span v-if="apiStore.loading">Révocation en cours...</span>
+                <span v-else>Révoquer le token</span>
               </button>
             </div>
           </div>
@@ -38,7 +39,8 @@
               :disabled="apiStore.loading"
               class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Générer un nouveau token
+              <span v-if="apiStore.loading">Génération en cours...</span>
+              <span v-else>Générer un nouveau token</span>
             </button>
           </div>
 
@@ -61,7 +63,7 @@
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2.5">
               <div 
-                class="bg-indigo-600 h-2.5 rounded-full"
+                class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
                 :style="{ width: `${apiStore.usagePercentage}%` }"
                 :class="{
                   'bg-yellow-500': apiStore.usagePercentage >= 70 && apiStore.usagePercentage < 90,
@@ -78,12 +80,12 @@
               <div
                 v-for="day in apiStore.usage"
                 :key="day.date"
-                class="h-24 bg-gray-100 rounded-md p-2"
+                class="h-24 bg-gray-100 rounded-md p-2 relative"
               >
                 <div class="text-xs text-gray-500">{{ formatDate(day.date) }}</div>
                 <div class="text-sm font-medium">{{ day.requests }} req.</div>
                 <div 
-                  class="mt-2 bg-indigo-200 rounded-sm"
+                  class="absolute bottom-2 left-2 right-2 bg-indigo-200 rounded-sm transition-all duration-300"
                   :style="{ height: `${(day.requests / day.limit) * 100}%` }"
                 ></div>
               </div>
@@ -98,14 +100,14 @@
             <div>
               <h4 class="text-sm font-medium text-gray-900">Authentification</h4>
               <pre class="mt-2 rounded-md bg-gray-50 p-4">
-Authorization: Bearer votre_token</pre>
+Authorization: Bearer {{ apiStore.token || 'votre_token' }}</pre>
             </div>
             <div>
               <h4 class="text-sm font-medium text-gray-900">Exemple de requête</h4>
               <pre class="mt-2 rounded-md bg-gray-50 p-4">
 curl -X GET \
-  {{ config.public.apiBaseUrl }}/api/v1/products \
-  -H 'Authorization: Bearer votre_token'</pre>
+  https://europe-west9-fournisseur-data.cloudfunctions.net/getProducts \
+  -H 'Authorization: Bearer {{ apiStore.token || 'votre_token' }}'</pre>
             </div>
           </div>
         </div>
@@ -166,9 +168,13 @@ const toast = useToast()
 
 onMounted(async () => {
   try {
-    await apiStore.fetchUsage()
+    await Promise.all([
+      apiStore.fetchUsage(),
+      apiStore.fetchTokenHistory()
+    ])
   } catch (error) {
-    toast.error("Erreur lors de la récupération des statistiques d'utilisation")
+    console.error('Erreur lors du chargement des données:', error)
+    toast.error("Erreur lors du chargement des données")
   }
 })
 

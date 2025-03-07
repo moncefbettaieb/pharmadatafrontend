@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { httpsCallable } from 'firebase/functions'
 
 interface ApiUsage {
   date: string
@@ -13,17 +14,19 @@ interface TokenHistory {
   lastUsed: string | null
 }
 
+interface ApiPlan {
+  name: string
+  requestsPerMonth: number
+  remainingRequests: number
+}
+
 interface ApiState {
   token: string | null
   loading: boolean
   error: string | null
   usage: ApiUsage[]
   history: TokenHistory[]
-  currentPlan: {
-    name: string
-    requestsPerMonth: number
-    remainingRequests: number
-  } | null
+  currentPlan: ApiPlan | null
 }
 
 export const useApiStore = defineStore('api', {
@@ -37,9 +40,10 @@ export const useApiStore = defineStore('api', {
   }),
 
   getters: {
-    usagePercentage: (state) => {
+    usagePercentage: (state): number => {
       if (!state.currentPlan) return 0
-      return Math.round((state.currentPlan.requestsPerMonth - state.currentPlan.remainingRequests) / state.currentPlan.requestsPerMonth * 100)
+      const used = state.currentPlan.requestsPerMonth - state.currentPlan.remainingRequests
+      return Math.round((used / state.currentPlan.requestsPerMonth) * 100)
     }
   },
 
@@ -47,30 +51,31 @@ export const useApiStore = defineStore('api', {
     async generateToken() {
       this.loading = true
       this.error = null
-      try {
-        const config = useRuntimeConfig()
-        const response = await fetch(`${config.public.apiBaseUrl}/api/v1/generate-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${useAuthStore().user?.accessToken}`
-          }
-        })
 
-        if (!response.ok) {
-          throw new Error('Erreur lors de la génération du token')
+      try {
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
+          throw new Error('Firebase Functions non initialisé')
         }
 
-        const data = await response.json()
-        this.token = data.token
+        const generateTokenCall = httpsCallable($functions, 'generateToken')
+        const result = await generateTokenCall()
+        
+        if (!result.data || typeof result.data !== 'object') {
+          throw new Error('Réponse invalide du serveur')
+        }
+
+        const { token, id } = result.data as { token: string; id: string }
+        
+        this.token = token
         this.history.unshift({
-          id: data.id,
+          id,
           createdAt: new Date().toISOString(),
           revokedAt: null,
           lastUsed: null
         })
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Une erreur est survenue'
         throw error
       } finally {
         this.loading = false
@@ -82,27 +87,23 @@ export const useApiStore = defineStore('api', {
 
       this.loading = true
       this.error = null
-      try {
-        const config = useRuntimeConfig()
-        const response = await fetch(`${config.public.apiBaseUrl}/api/v1/revoke-token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${useAuthStore().user?.accessToken}`
-          }
-        })
 
-        if (!response.ok) {
-          throw new Error('Erreur lors de la révocation du token')
+      try {
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
+          throw new Error('Firebase Functions non initialisé')
         }
+
+        const revokeTokenCall = httpsCallable($functions, 'revokeToken')
+        await revokeTokenCall()
 
         const currentToken = this.history.find(t => !t.revokedAt)
         if (currentToken) {
           currentToken.revokedAt = new Date().toISOString()
         }
         this.token = null
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Une erreur est survenue'
         throw error
       } finally {
         this.loading = false
@@ -112,23 +113,55 @@ export const useApiStore = defineStore('api', {
     async fetchUsage() {
       this.loading = true
       this.error = null
-      try {
-        const config = useRuntimeConfig()
-        const response = await fetch(`${config.public.apiBaseUrl}/api/v1/api-usage`, {
-          headers: {
-            'Authorization': `Bearer ${useAuthStore().user?.accessToken}`
-          }
-        })
 
-        if (!response.ok) {
-          throw new Error('Erreur lors de la récupération des statistiques')
+      try {
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
+          throw new Error('Firebase Functions non initialisé')
         }
 
-        const data = await response.json()
+        const getApiUsageCall = httpsCallable($functions, 'getApiUsage')
+        const result = await getApiUsageCall()
+
+        if (!result.data || typeof result.data !== 'object') {
+          throw new Error('Réponse invalide du serveur')
+        }
+
+        const data = result.data as {
+          usage: ApiUsage[]
+          currentPlan: ApiPlan
+        }
+
         this.usage = data.usage
         this.currentPlan = data.currentPlan
-      } catch (error: any) {
-        this.error = error.message
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Une erreur est survenue'
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchTokenHistory() {
+      this.loading = true
+      this.error = null
+
+      try {
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
+          throw new Error('Firebase Functions non initialisé')
+        }
+
+        const getTokenHistoryCall = httpsCallable($functions, 'getTokenHistory')
+        const result = await getTokenHistoryCall()
+
+        if (!result.data || !Array.isArray(result.data)) {
+          throw new Error('Réponse invalide du serveur')
+        }
+
+        this.history = result.data as TokenHistory[]
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Une erreur est survenue'
         throw error
       } finally {
         this.loading = false

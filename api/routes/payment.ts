@@ -15,8 +15,8 @@ router.post('/create-checkout-session', authenticateToken, async (req, res) => {
 
     // Récupérer les détails des produits depuis Firestore
     const productDetails = await Promise.all(
-      items.map(async (item: { productId: string; quantity: number }) => {
-        const productDoc = await db.collection('products').doc(item.productId).get()
+      items.map(async (item: { cip_code: string; quantity: number }) => {
+        const productDoc = await db.collection('final_pharma_table').doc(item.cip_code).get()
         const productData = productDoc.data()
         return {
           ...productData,

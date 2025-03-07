@@ -1,9 +1,31 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
 import Stripe from 'stripe'
+import { generateToken, revokeToken } from './api/tokens'
+import { getApiUsage } from './api/usage'
+import { createCheckoutSession } from './api/checkout'
+import { getProducts, getProductByCip } from './api/products'
+import { handleWebhook } from './api/webhook'
+import { trackApiUsage, getApiStats } from './api/stats'
+import { 
+  getNotifications, 
+  markNotificationAsRead, 
+  createNotification, 
+  deleteNotification 
+} from './api/notifications'
+import {
+  trackApiCall,
+  getApiAnalytics,
+  getEndpointPerformance
+} from './api/analytics'
+import {
+  reportError,
+  getErrorReports,
+  updateErrorReport,
+  deleteErrorReport
+} from './api/error-reporting'
 
-// Initialiser Firebase Admin sans paramètres explicites
-// Cela utilisera automatiquement les credentials par défaut
+// Initialiser Firebase Admin
 admin.initializeApp()
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -43,16 +65,13 @@ export const createSubscription = onCall({
       throw new HttpsError('invalid-argument', 'Plan invalide')
     }
     
-    // Utiliser admin.firestore() directement
     const db = admin.firestore()
     
-    // Créer ou récupérer le client Stripe
     let customer
     const userRef = db.collection('users').doc(request.auth.uid)
     const userDoc = await userRef.get()
     
     if (!userDoc.exists) {
-      // Créer le document utilisateur s'il n'existe pas
       await userRef.set({
         email: request.auth.token.email,
         createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -71,13 +90,11 @@ export const createSubscription = onCall({
         }
       })
       
-      // Sauvegarder l'ID du client Stripe
       await userRef.update({
         stripeCustomerId: customer.id
       })
     }
 
-    // Créer la session de paiement
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       payment_method_types: ['card'],
@@ -97,6 +114,30 @@ export const createSubscription = onCall({
     return { sessionId: session.id }
   } catch (error) {
     console.error('Erreur lors de la création de la session:', error)
-    throw new HttpsError('internal', 'Erreur lors de la création de la session de paiement', error)
+    throw new HttpsError('internal', 'Erreur lors de la création de la session de paiement')
   }
 })
+
+// Exporter les fonctions
+export {
+  generateToken,
+  revokeToken,
+  getApiUsage,
+  createCheckoutSession,
+  getProducts,
+  handleWebhook,
+  trackApiUsage,
+  getApiStats,
+  getNotifications,
+  markNotificationAsRead,
+  createNotification,
+  deleteNotification,
+  trackApiCall,
+  getApiAnalytics,
+  getEndpointPerformance,
+  reportError,
+  getErrorReports,
+  updateErrorReport,
+  deleteErrorReport,
+  getProductByCip
+}
