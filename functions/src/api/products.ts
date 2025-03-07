@@ -9,7 +9,7 @@ export const getProducts = onCall({
     const db = admin.firestore()
     
     // Récupérer tous les produits actifs
-    const productsSnapshot = await db.collection('products')
+    const productsSnapshot = await db.collection('final_pharma_table')
       .where('active', '==', true)
       .orderBy('name')
       .get()

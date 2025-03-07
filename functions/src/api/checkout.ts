@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 })
 
 interface CartItem {
-  productId: string
+  cip_code: string
   quantity: number
 }
 
@@ -39,7 +39,7 @@ export const createCheckoutSession = onCall({
     // Récupérer les détails des produits depuis Firestore
     const productDetails = await Promise.all(
       items.map(async (item) => {
-        const productDoc = await db.collection('products').doc(item.productId).get()
+        const productDoc = await db.collection('final_pharma_table').doc(item.cip_code).get()
         if (!productDoc.exists) {
           throw new HttpsError('not-found', `Produit non trouvé: ${item.productId}`)
         }
