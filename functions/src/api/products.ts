@@ -1,4 +1,3 @@
-typescript
 import { onRequest } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
 import { rateLimit } from '../utils/rate-limit'
@@ -97,8 +96,8 @@ export const getProducts = onRequest({
     return
   }
 
-  // Rate limiting
-  const clientIp = req.ip
+  // Rate limiting - ensure clientIp is never undefined
+  const clientIp = req.ip || req.socket.remoteAddress || 'unknown'
   const isLimited = await rateLimit(clientIp)
   if (isLimited) {
     res.status(429).json({ error: 'Too many requests' })
@@ -118,7 +117,8 @@ export const getProducts = onRequest({
       brand
     } = req.query as unknown as PaginationParams
 
-    let query = db.collection('products')
+    let query = db.collection('final_pharma_table')
+                .limit(limit)
 
     // Apply filters
     if (category) query = query.where('category', '==', category)
@@ -203,7 +203,7 @@ export const getProductByCip = onRequest({
 
   try {
     const db = admin.firestore()
-    const productDoc = await db.collection('products')
+    const productDoc = await db.collection('final_pharma_table')
       .where('cip_code', '==', cipCode)
       .limit(1)
       .get()
