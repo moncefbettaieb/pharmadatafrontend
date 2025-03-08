@@ -106,7 +106,7 @@ Authorization: Bearer {{ apiStore.token || 'votre_token' }}</pre>
               <h4 class="text-sm font-medium text-gray-900">Exemple de requête</h4>
               <pre class="mt-2 rounded-md bg-gray-50 p-4">
 curl -X GET \
-  {{ config.public.apiBaseUrl }}/products \
+  https://europe-west9-fournisseur-data.cloudfunctions.net/getProducts \
   -H 'Authorization: Bearer {{ apiStore.token || 'votre_token' }}'</pre>
             </div>
           </div>

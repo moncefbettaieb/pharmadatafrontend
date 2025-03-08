@@ -4,7 +4,7 @@ import Stripe from 'stripe'
 import { generateToken, revokeToken } from './api/tokens'
 import { getApiUsage } from './api/usage'
 import { createCheckoutSession } from './api/checkout'
-import { getProducts } from './api/products'
+import { getProducts, getProductByCip } from './api/products'
 import { handleWebhook } from './api/webhook'
 import { trackApiUsage, getApiStats } from './api/stats'
 import { 
@@ -138,5 +138,6 @@ export {
   reportError,
   getErrorReports,
   updateErrorReport,
-  deleteErrorReport
+  deleteErrorReport,
+  getProductByCip
 }

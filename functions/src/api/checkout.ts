@@ -41,7 +41,7 @@ export const createCheckoutSession = onCall({
       items.map(async (item) => {
         const productDoc = await db.collection('final_pharma_table').doc(item.cip_code).get()
         if (!productDoc.exists) {
-          throw new HttpsError('not-found', `Produit non trouvé: ${item.productId}`)
+          throw new HttpsError('not-found', `Produit non trouvé: ${item.cip_code}`)
         }
         const productData = productDoc.data() as ProductData
         return {
