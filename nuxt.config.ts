@@ -44,5 +44,8 @@ export default defineNuxtConfig({
     define: {
       'process.env.ES_BUILD': 'false'
     }
+  },
+  routeRules: {
+    '/products': { middleware: ['rate-limit'] }
   }
 })
