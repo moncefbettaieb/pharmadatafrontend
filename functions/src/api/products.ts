@@ -1,6 +1,5 @@
-import { onRequest } from 'firebase-functions/v2/https'
+import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
-import { rateLimit } from '../utils/rate-limit'
 
 interface Product {
   id: string
@@ -25,7 +24,7 @@ interface PaginationParams {
   brand?: string
 }
 
-interface ProductResponse {
+interface ProductsResponse {
   products: Product[]
   pagination: {
     total: number
@@ -80,68 +79,39 @@ async function trackTokenUsage(tokenId: string, endpoint: string, responseTime: 
   })
 }
 
-export const getProducts = onRequest({
+export const getProducts = onCall({
   region: 'europe-west9',
   maxInstances: 10
-}, async (req, res) => {
-  const startTime = Date.now()
-
-  // Enable CORS
-  res.set('Access-Control-Allow-Origin', '*')
-  res.set('Access-Control-Allow-Methods', 'GET')
-  res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type')
-
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('')
-    return
-  }
-
-  // Rate limiting - ensure clientIp is never undefined
-  const clientIp = req.ip || req.socket.remoteAddress || 'unknown'
-  const isLimited = await rateLimit(clientIp)
-  if (isLimited) {
-    res.status(429).json({ error: 'Too many requests' })
-    return
-  }
-
+}, async (request) => {
+  
   try {
     const db = admin.firestore()
     const {
       page = 1,
       limit = 12,
       sortBy = 'title',
-      sortOrder = 'asc',
-      category,
-      subCategory1,
-      subCategory2,
-      brand
-    } = req.query as unknown as PaginationParams
+      sortOrder = 'asc'
+    } = request.data || {} as PaginationParams
 
-    let query = db.collection('final_pharma_table')
-                .limit(limit)
+    // Get total count of active products
+    const countSnapshot = await db.collection('final_pharma_table')
+      .count()
+      .get()
+    const total = countSnapshot.data().count
 
-    // Apply filters
-    if (category) query = query.where('category', '==', category)
-    if (subCategory1) query = query.where('sub_category1', '==', subCategory1)
-    if (subCategory2) query = query.where('sub_category2', '==', subCategory2)
-    if (brand) query = query.where('brand', '==', brand)
-
-    // Get total count
-    const totalSnapshot = await query.count().get()
-    const total = totalSnapshot.data().count
-
-    // Apply sorting and pagination
-    query = query.orderBy(sortBy, sortOrder)
+    // Get paginated products
+    const productsSnapshot = await db.collection('final_pharma_table')
+      .orderBy(sortBy, sortOrder)
       .offset((page - 1) * limit)
       .limit(limit)
+      .get()
 
-    const snapshot = await query.get()
-    const products = snapshot.docs.map(doc => ({
+    const products = productsSnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data() as Omit<Product, 'id'>
-    }))
+      ...doc.data()
+    })) as Product[]
 
-    const response: ProductResponse = {
+    const response: ProductsResponse = {
       products,
       pagination: {
         total,
@@ -152,23 +122,10 @@ export const getProducts = onRequest({
       }
     }
 
-    // Track token usage if token is provided
-    const tokenId = await validateAndExtractToken(req.headers.authorization)
-    if (tokenId) {
-      await trackTokenUsage(tokenId, 'getProducts', Date.now() - startTime, true)
-    }
-
-    res.json(response)
+    return response
   } catch (error) {
     console.error('Error fetching products:', error)
-    
-    // Track failed request if token was provided
-    const tokenId = await validateAndExtractToken(req.headers.authorization)
-    if (tokenId) {
-      await trackTokenUsage(tokenId, 'getProducts', Date.now() - startTime, false)
-    }
-
-    res.status(500).json({ error: 'Internal server error' })
+    throw new HttpsError('internal', 'Error fetching products')
   }
 })
 

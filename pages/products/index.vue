@@ -70,6 +70,7 @@
               <p class="mt-1 text-sm text-gray-500">{{ product.brand }}</p>
               <p class="mt-1 text-xs text-gray-400">CIP: {{ product.cip_code }}</p>
             </div>
+            <p class="text-sm font-medium text-gray-900">{{ product.price }}€</p>
           </div>
           <div class="mt-2">
             <p class="text-sm text-gray-600 line-clamp-2">{{ product.short_desc }}</p>
@@ -78,6 +79,31 @@
             <p class="text-xs text-gray-500">
               {{ product.category }} > {{ product.sub_category1 }} > {{ product.sub_category2 }}
             </p>
+          </div>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <button 
+                @click="decrementQuantity(product.id)"
+                class="rounded-md bg-gray-200 px-2 py-1 text-sm"
+                :disabled="!getQuantity(product.id)"
+              >
+                -
+              </button>
+              <span class="text-sm">{{ getQuantity(product.id) }}</span>
+              <button 
+                @click="incrementQuantity(product.id)"
+                class="rounded-md bg-gray-200 px-2 py-1 text-sm"
+              >
+                +
+              </button>
+            </div>
+            <button
+              @click="addToCart(product)"
+              class="flex-1 ml-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+              :disabled="!getQuantity(product.id)"
+            >
+              Ajouter au panier
+            </button>
           </div>
         </div>
       </div>
@@ -133,9 +159,11 @@
 
 <script setup lang="ts">
 import { useProductsStore } from '~/stores/products'
+import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
 
 const productsStore = useProductsStore()
+const cartStore = useCartStore()
 const toast = useToast()
 
 const currentPage = ref(1)
@@ -148,6 +176,8 @@ const filters = ref({
   subCategory2: '',
   brand: ''
 })
+
+const quantities = ref<Record<string, number>>({})
 
 const categories = computed(() => {
   return [...new Set(productsStore.products.map(p => p.category))].sort()
@@ -195,6 +225,32 @@ const fetchProducts = async () => {
   } catch (error) {
     console.error('Erreur lors du chargement des produits:', error)
     toast.error("Une erreur s'est produite lors du chargement des produits")
+  }
+}
+
+const getQuantity = (productId: string): number => {
+  return quantities.value[productId] || 0
+}
+
+const incrementQuantity = (productId: string) => {
+  quantities.value[productId] = (quantities.value[productId] || 0) + 1
+}
+
+const decrementQuantity = (productId: string) => {
+  if (quantities.value[productId] > 0) {
+    quantities.value[productId]--
+  }
+}
+
+const addToCart = (product: any) => {
+  const quantity = getQuantity(product.id)
+  if (quantity > 0) {
+    cartStore.addToCart({
+      ...product,
+      quantity
+    })
+    quantities.value[product.id] = 0
+    toast.success('Produit ajouté au panier')
   }
 }
 
