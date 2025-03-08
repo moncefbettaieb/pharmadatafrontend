@@ -1,5 +1,7 @@
+typescript
 import { onRequest } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
+import { rateLimit } from '../utils/rate-limit'
 
 interface Product {
   id: string
@@ -10,7 +12,18 @@ interface Product {
   sub_category1: string
   sub_category2: string
   short_desc: string
-  active: boolean
+  image_url?: string
+}
+
+interface PaginationParams {
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  category?: string
+  subCategory1?: string
+  subCategory2?: string
+  brand?: string
 }
 
 interface ProductResponse {
@@ -24,73 +37,165 @@ interface ProductResponse {
   }
 }
 
-interface ProductFilters {
-  category?: string
-  subCategory1?: string
-  subCategory2?: string
-  brand?: string
-}
-
-async function incrementTokenUsage(tokenDoc: FirebaseFirestore.DocumentSnapshot, endpoint: string): Promise<void> {
-  const db = admin.firestore()
-  const userId = tokenDoc.data()?.userId
-
-  if (!userId) {
-    throw new Error('User ID not found in token data')
+async function validateAndExtractToken(authHeader: string | undefined): Promise<string | null> {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const token = authHeader.split('Bearer ')[1]
+  if (!token) return null
 
-  const usageRef = db.collection('api_usage')
-    .doc(`${userId}_${today.toISOString().split('T')[0]}`)
+  const tokenDoc = await admin.firestore()
+    .collection('api_tokens')
+    .where('token', '==', token)
+    .where('isRevoked', '==', false)
+    .limit(1)
+    .get()
+
+  if (tokenDoc.empty) return null
+  return tokenDoc.docs[0].id
+}
+
+async function trackTokenUsage(tokenId: string, endpoint: string, responseTime: number, success: boolean) {
+  const db = admin.firestore()
+  const tokenRef = db.collection('api_tokens').doc(tokenId)
 
   await db.runTransaction(async (transaction) => {
-    const usageDoc = await transaction.get(usageRef)
+    const tokenDoc = await transaction.get(tokenRef)
+    if (!tokenDoc.exists) return
 
-    if (!usageDoc.exists) {
-      transaction.set(usageRef, {
-        userId,
-        date: today,
-        requests: 1,
-        endpoints: {
-          [endpoint]: 1
-        },
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      })
-    } else {
-      transaction.update(usageRef, {
-        requests: admin.firestore.FieldValue.increment(1),
-        [`endpoints.${endpoint}`]: admin.firestore.FieldValue.increment(1),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      })
-    }
-
-    // Mettre à jour la dernière utilisation du token
-    transaction.update(tokenDoc.ref, {
+    // Update last used timestamp
+    transaction.update(tokenRef, {
       lastUsed: admin.firestore.FieldValue.serverTimestamp()
+    })
+
+    // Track API usage
+    const usageRef = db.collection('api_usage').doc()
+    transaction.set(usageRef, {
+      tokenId,
+      endpoint,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      responseTime,
+      success
     })
   })
 }
+
+export const getProducts = onRequest({
+  region: 'europe-west9',
+  maxInstances: 10
+}, async (req, res) => {
+  const startTime = Date.now()
+
+  // Enable CORS
+  res.set('Access-Control-Allow-Origin', '*')
+  res.set('Access-Control-Allow-Methods', 'GET')
+  res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('')
+    return
+  }
+
+  // Rate limiting
+  const clientIp = req.ip
+  const isLimited = await rateLimit(clientIp)
+  if (isLimited) {
+    res.status(429).json({ error: 'Too many requests' })
+    return
+  }
+
+  try {
+    const db = admin.firestore()
+    const {
+      page = 1,
+      limit = 12,
+      sortBy = 'title',
+      sortOrder = 'asc',
+      category,
+      subCategory1,
+      subCategory2,
+      brand
+    } = req.query as unknown as PaginationParams
+
+    let query = db.collection('products')
+
+    // Apply filters
+    if (category) query = query.where('category', '==', category)
+    if (subCategory1) query = query.where('sub_category1', '==', subCategory1)
+    if (subCategory2) query = query.where('sub_category2', '==', subCategory2)
+    if (brand) query = query.where('brand', '==', brand)
+
+    // Get total count
+    const totalSnapshot = await query.count().get()
+    const total = totalSnapshot.data().count
+
+    // Apply sorting and pagination
+    query = query.orderBy(sortBy, sortOrder)
+      .offset((page - 1) * limit)
+      .limit(limit)
+
+    const snapshot = await query.get()
+    const products = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data() as Omit<Product, 'id'>
+    }))
+
+    const response: ProductResponse = {
+      products,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total
+      }
+    }
+
+    // Track token usage if token is provided
+    const tokenId = await validateAndExtractToken(req.headers.authorization)
+    if (tokenId) {
+      await trackTokenUsage(tokenId, 'getProducts', Date.now() - startTime, true)
+    }
+
+    res.json(response)
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    
+    // Track failed request if token was provided
+    const tokenId = await validateAndExtractToken(req.headers.authorization)
+    if (tokenId) {
+      await trackTokenUsage(tokenId, 'getProducts', Date.now() - startTime, false)
+    }
+
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
 
 export const getProductByCip = onRequest({
   region: 'europe-west9',
   maxInstances: 10
 }, async (req, res) => {
-  if (req.method !== 'GET') {
-    res.status(405).send('Method Not Allowed')
+  const startTime = Date.now()
+
+  // Enable CORS
+  res.set('Access-Control-Allow-Origin', '*')
+  res.set('Access-Control-Allow-Methods', 'GET')
+  res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('')
     return
   }
 
-  const authHeader = req.headers.authorization
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).send('Unauthorized')
+  // Validate token
+  const tokenId = await validateAndExtractToken(req.headers.authorization)
+  if (!tokenId) {
+    res.status(401).json({ error: 'Invalid or missing token' })
     return
   }
 
-  const token = authHeader.split('Bearer ')[1]
-  const cipCode = req.query.cip as string
-
+  const cipCode = req.query.cipCode as string
   if (!cipCode) {
     res.status(400).json({ error: 'CIP code is required' })
     return
@@ -98,143 +203,27 @@ export const getProductByCip = onRequest({
 
   try {
     const db = admin.firestore()
-
-    // Vérifier le token
-    const tokensSnapshot = await db.collection('api_tokens')
-      .where('token', '==', token)
-      .where('isRevoked', '==', false)
-      .limit(1)
-      .get()
-
-    if (tokensSnapshot.empty) {
-      res.status(401).send('Invalid token')
-      return
-    }
-
-    const tokenDoc = tokensSnapshot.docs[0]
-
-    // Incrémenter l'utilisation du token
-    await incrementTokenUsage(tokenDoc, 'getProductByCip')
-
-    // Rechercher le produit par CIP
-    const productsSnapshot = await db.collection('final_pharma_table')
+    const productDoc = await db.collection('products')
       .where('cip_code', '==', cipCode)
       .limit(1)
       .get()
 
-    if (productsSnapshot.empty) {
+    if (productDoc.empty) {
+      await trackTokenUsage(tokenId, 'getProductByCip', Date.now() - startTime, false)
       res.status(404).json({ error: 'Product not found' })
       return
     }
 
-    const productDoc = productsSnapshot.docs[0]
-    const productData = productDoc.data() as Product
+    const product = {
+      id: productDoc.docs[0].id,
+      ...productDoc.docs[0].data() as Omit<Product, 'id'>
+    }
 
-    res.json({
-      ...productData,
-      id: productDoc.id
-    })
+    await trackTokenUsage(tokenId, 'getProductByCip', Date.now() - startTime, true)
+    res.json(product)
   } catch (error) {
     console.error('Error fetching product:', error)
-    res.status(500).json({ error: 'Internal Server Error' })
-  }
-})
-
-export const getProducts = onRequest({
-  region: 'europe-west9',
-  maxInstances: 10
-}, async (req, res) => {
-  if (req.method !== 'GET') {
-    res.status(405).send('Method Not Allowed')
-    return
-  }
-
-  const authHeader = req.headers.authorization
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).send('Unauthorized')
-    return
-  }
-
-  const token = authHeader.split('Bearer ')[1]
-
-  try {
-    const db = admin.firestore()
-
-    // Vérifier le token
-    const tokensSnapshot = await db.collection('api_tokens')
-      .where('token', '==', token)
-      .where('isRevoked', '==', false)
-      .limit(1)
-      .get()
-
-    if (tokensSnapshot.empty) {
-      res.status(401).send('Invalid token')
-      return
-    }
-
-    const tokenDoc = tokensSnapshot.docs[0]
-
-    // Incrémenter l'utilisation du token
-    await incrementTokenUsage(tokenDoc, 'getProducts')
-
-    // Paramètres de pagination
-    const page = Math.max(1, parseInt(req.query.page as string) || 1)
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100)
-    const sortBy = (req.query.sortBy as string) || 'title'
-    const sortOrder = (req.query.sortOrder as 'asc' | 'desc') || 'asc'
-    const offset = (page - 1) * limit
-
-    // Construire la requête de base
-    let query = db.collection('final_pharma_table')
-      .limit(limit)
-      //.where('active', '==', true)
-
-    // Appliquer les filtres
-    const filters: ProductFilters = {
-      category: req.query.category as string,
-      subCategory1: req.query.subCategory1 as string,
-      subCategory2: req.query.subCategory2 as string,
-      brand: req.query.brand as string
-    }
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) {
-        query = query.where(key, '==', value)
-      }
-    })
-
-    // Ajouter le tri
-    query = query.orderBy(sortBy, sortOrder)
-
-    // Obtenir le nombre total de produits pour la pagination
-    const totalQuery = query.count()
-    const [productsSnapshot, totalSnapshot] = await Promise.all([
-      query.limit(limit).offset(offset).get(),
-      totalQuery.get()
-    ])
-
-    const total = totalSnapshot.data().count
-    const totalPages = Math.ceil(total / limit)
-
-    const products = productsSnapshot.docs.map(doc => ({
-      ...doc.data() as Product,
-      id: doc.id
-    }))
-
-    const responseData: ProductResponse = {
-      products,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasMore: page < totalPages
-      }
-    }
-
-    res.json(responseData)
-  } catch (error) {
-    console.error('Error fetching products:', error)
-    res.status(500).json({ error: 'Internal Server Error' })
+    await trackTokenUsage(tokenId, 'getProductByCip', Date.now() - startTime, false)
+    res.status(500).json({ error: 'Internal server error' })
   }
 })
