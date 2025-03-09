@@ -2,7 +2,7 @@
   <div class="bg-white">
     <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
       <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Nos Produits</h1>
+        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Nos Fiches Produits</h1>
         
         <!-- Filtres -->
         <div class="flex gap-4">
@@ -61,16 +61,14 @@
               class="h-full w-full object-cover object-center lg:h-full lg:w-full"
             >
           </div>
-          <div class="mt-4 flex justify-between">
+          <div class="mt-4">
             <div>
               <h3 class="text-sm text-gray-700">
-                <span class="absolute inset-0"></span>
                 {{ product.title }}
               </h3>
               <p class="mt-1 text-sm text-gray-500">{{ product.brand }}</p>
               <p class="mt-1 text-xs text-gray-400">CIP: {{ product.cip_code }}</p>
             </div>
-            <p class="text-sm font-medium text-gray-900">{{ product.price }}€</p>
           </div>
           <div class="mt-2">
             <p class="text-sm text-gray-600 line-clamp-2">{{ product.short_desc }}</p>
@@ -81,28 +79,13 @@
             </p>
           </div>
           <div class="mt-4 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <button 
-                @click="decrementQuantity(product.id)"
-                class="rounded-md bg-gray-200 px-2 py-1 text-sm"
-                :disabled="!getQuantity(product.id)"
-              >
-                -
-              </button>
-              <span class="text-sm">{{ getQuantity(product.id) }}</span>
-              <button 
-                @click="incrementQuantity(product.id)"
-                class="rounded-md bg-gray-200 px-2 py-1 text-sm"
-              >
-                +
-              </button>
-            </div>
+            <p class="text-sm font-medium text-gray-900">0.50€</p>
             <button
               @click="addToCart(product)"
-              class="flex-1 ml-4 rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-              :disabled="!getQuantity(product.id)"
+              class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+              :disabled="isInCart(product.id)"
             >
-              Ajouter au panier
+              {{ isInCart(product.id) ? 'Déjà dans le panier' : 'Ajouter au panier' }}
             </button>
           </div>
         </div>
@@ -177,8 +160,6 @@ const filters = ref({
   brand: ''
 })
 
-const quantities = ref<Record<string, number>>({})
-
 const categories = computed(() => {
   return [...new Set(productsStore.products.map(p => p.category))].sort()
 })
@@ -228,29 +209,18 @@ const fetchProducts = async () => {
   }
 }
 
-const getQuantity = (productId: string): number => {
-  return quantities.value[productId] || 0
-}
-
-const incrementQuantity = (productId: string) => {
-  quantities.value[productId] = (quantities.value[productId] || 0) + 1
-}
-
-const decrementQuantity = (productId: string) => {
-  if (quantities.value[productId] > 0) {
-    quantities.value[productId]--
-  }
+const isInCart = (productId: string): boolean => {
+  return cartStore.items.some(item => item.productId === productId)
 }
 
 const addToCart = (product: any) => {
-  const quantity = getQuantity(product.id)
-  if (quantity > 0) {
+  if (!isInCart(product.id)) {
     cartStore.addToCart({
       ...product,
-      quantity
+      price: 0.5,
+      quantity: 1
     })
-    quantities.value[product.id] = 0
-    toast.success('Produit ajouté au panier')
+    toast.success('Fiche produit ajoutée au panier')
   }
 }
 

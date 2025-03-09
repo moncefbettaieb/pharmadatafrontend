@@ -9,43 +9,44 @@
           to="/products"
           class="mt-4 inline-block rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
         >
-          Parcourir les produits
+          Parcourir les fiches produits
         </NuxtLink>
       </div>
 
       <div v-else>
-        <!-- Liste des produits -->
+        <!-- Liste des fiches produits -->
         <div class="mt-8">
           <div class="flow-root">
             <ul role="list" class="-my-6 divide-y divide-gray-200">
               <li v-for="item in cartStore.items" :key="item.productId" class="flex py-6">
-                <div class="flex-1 ml-4">
-                  <div class="flex justify-between text-base font-medium text-gray-900">
-                    <h3>{{ item.name }}</h3>
-                    <p class="ml-4">{{ (item.price * item.quantity).toFixed(2) }}€</p>
+                <!-- Image du produit -->
+                <div class="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
+                  <img 
+                    :src="item.image_url || '/placeholder-product.jpg'" 
+                    :alt="item.title"
+                    class="h-full w-full object-cover object-center"
+                  >
+                </div>
+
+                <div class="ml-4 flex flex-1 flex-col">
+                  <div>
+                    <div class="flex justify-between text-base font-medium text-gray-900">
+                      <h3>{{ item.title }}</h3>
+                      <p class="ml-4">0.50€</p>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ item.short_desc }}</p>
                   </div>
-                  <div class="flex items-center justify-between mt-4">
-                    <div class="flex items-center border rounded">
+                  
+                  <div class="flex flex-1 items-end justify-between text-sm">
+                    <p class="text-gray-500">CIP: {{ item.cip_code }}</p>
+                    <div class="flex">
                       <button
-                        @click="updateQuantity(item.productId, item.quantity - 1)"
-                        class="px-3 py-1 text-gray-600 hover:bg-gray-100"
+                        @click="removeFromCart(item.productId)"
+                        class="font-medium text-indigo-600 hover:text-indigo-500"
                       >
-                        -
-                      </button>
-                      <span class="px-3 py-1">{{ item.quantity }}</span>
-                      <button
-                        @click="updateQuantity(item.productId, item.quantity + 1)"
-                        class="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                      >
-                        +
+                        Supprimer
                       </button>
                     </div>
-                    <button
-                      @click="removeFromCart(item.productId)"
-                      class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                    >
-                      Supprimer
-                    </button>
                   </div>
                 </div>
               </li>
@@ -56,10 +57,11 @@
         <!-- Résumé -->
         <div class="mt-8 border-t border-gray-200 pt-8">
           <div class="flex justify-between text-base font-medium text-gray-900">
-            <p>Sous-total</p>
-            <p>{{ cartStore.totalPrice.toFixed(2) }}€</p>
+            <p>Total</p>
+            <p>{{ (cartStore.items.length * 0.50).toFixed(2) }}€</p>
           </div>
-          <p class="mt-0.5 text-sm text-gray-500">TVA et frais de livraison calculés à la commande.</p>
+          <p class="mt-0.5 text-sm text-gray-500">TVA incluse.</p>
+          
           <div class="mt-6">
             <button
               @click="proceedToCheckout"
@@ -69,9 +71,11 @@
               {{ paymentStore.loading ? 'Redirection vers le paiement...' : 'Commander' }}
             </button>
           </div>
+          
           <div v-if="paymentStore.error" class="mt-4 text-center text-red-600 text-sm">
             {{ paymentStore.error }}
           </div>
+          
           <div class="mt-6 flex justify-center text-center text-sm text-gray-500">
             <p>
               ou
@@ -96,26 +100,23 @@ import { useToast } from 'vue-toastification'
 
 const cartStore = useCartStore()
 const paymentStore = usePaymentStore()
-
-const updateQuantity = (productId: string, quantity: number): void => {
-  cartStore.updateQuantity(productId, quantity)
-}
+const toast = useToast()
 
 const removeFromCart = (productId: string): void => {
   cartStore.removeFromCart(productId)
-  useToast.success('Produit retiré du panier')
+  toast.success('Fiche produit retirée du panier')
 }
 
 const proceedToCheckout = async (): Promise<void> => {
   try {
     const items = cartStore.items.map(item => ({
       productId: item.productId,
-      quantity: item.quantity
+      quantity: 1
     }))
     
     await paymentStore.createCheckoutSession(items)
   } catch (error) {
-    useToast.error("Une erreur s'est produite lors de la redirection vers le paiement")
+    toast.error("Une erreur s'est produite lors de la redirection vers le paiement")
   }
 }
 
