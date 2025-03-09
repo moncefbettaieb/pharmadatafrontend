@@ -21,7 +21,9 @@
     "@headlessui/vue": "^1.7.19",
     "@heroicons/vue": "^2.1.1",
     "vue-toastification": "^2.0.0-rc.5",
-    "firebase-tools": "^13.4.1"
+    "firebase-tools": "^13.4.1",
+    "pdfkit": "^0.14.0",
+    "@types/pdfkit": "^0.13.4"
   },
   "devDependencies": {
     "@nuxtjs/google-fonts": "^3.1.3",

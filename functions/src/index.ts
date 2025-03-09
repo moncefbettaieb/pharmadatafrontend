@@ -7,6 +7,8 @@ import { createCheckoutSession } from './api/checkout'
 import { getProducts, getProductByCip } from './api/products'
 import { handleWebhook } from './api/webhook'
 import { trackApiUsage, getApiStats } from './api/stats'
+import { createProductPaymentSession} from './api/product-payment'
+import { getProductFiles } from './api/product-files'
 import { 
   getNotifications, 
   markNotificationAsRead, 
@@ -139,5 +141,7 @@ export {
   getErrorReports,
   updateErrorReport,
   deleteErrorReport,
-  getProductByCip
+  getProductByCip,
+  createProductPaymentSession,
+  getProductFiles
 }

@@ -1,11 +1,19 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { getAuth, onAuthStateChanged, type User } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
+import { getFunctions, connectFunctionsEmulator, httpsCallable, type HttpsCallable } from 'firebase/functions'
+
+// Créer un type pour stocker les fonctions Firebase
+interface FirebaseFunctions {
+  [key: string]: HttpsCallable
+}
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
+  
+  // Cache pour stocker les fonctions Firebase
+  const functionsCache: FirebaseFunctions = {}
   
   // Only initialize Firebase if we have the required config
   if (!config.public.firebaseConfig.apiKey) {
@@ -15,7 +23,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         firebase: null,
         auth: null,
         db: null,
-        functions: null
+        functions: null,
+        callFunction: null
       }
     }
   }
@@ -32,16 +41,46 @@ export default defineNuxtPlugin((nuxtApp) => {
     }
     
     // Écouter les changements d'état d'authentification
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, (user: User | null) => {
       authStore.user = user
     })
+
+    // Fonction utilitaire pour appeler les Cloud Functions
+    const callFunction = async (name: string, data?: any) => {
+      // Vérifier si l'utilisateur est connecté
+      if (!auth.currentUser) {
+        throw new Error('Utilisateur non authentifié')
+      }
+
+      // Récupérer ou créer la fonction depuis le cache
+      if (!functionsCache[name]) {
+        functionsCache[name] = httpsCallable(functions, name)
+      }
+
+      try {
+        // Appeler la fonction avec les données
+        const result = await functionsCache[name](data)
+        return result.data
+      } catch (error: any) {
+        console.error(`Erreur lors de l'appel de la fonction ${name}:`, error)
+        
+        // Gérer les erreurs d'authentification
+        if (error.code === 'unauthenticated' || error.code === 'permission-denied') {
+          authStore.logout()
+          throw new Error('Session expirée. Veuillez vous reconnecter.')
+        }
+        
+        throw error
+      }
+    }
     
     return {
       provide: {
         firebase: app,
         auth,
         db,
-        functions
+        functions,
+        callFunction
       }
     }
   } catch (error) {
@@ -51,7 +90,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         firebase: null,
         auth: null,
         db: null,
-        functions: null
+        functions: null,
+        callFunction: null
       }
     }
   }

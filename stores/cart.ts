@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 
 interface CartItem {
   productId: string
-  name: string
-  price: number
-  quantity: number
+  title: string
+  short_desc: string
+  image_url?: string
+  cip_code: string
 }
 
 export const useCartStore = defineStore('cart', {
@@ -13,22 +14,27 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-    totalItems: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
-    totalPrice: (state) => state.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+    totalItems: (state) => state.items.length,
+    totalPrice: (state) => state.items.length * 0.70
   },
 
   actions: {
-    addToCart(product: { id: string, name: string, price: number }) {
+    addToCart(product: { 
+      id: string, 
+      title: string, 
+      short_desc: string, 
+      image_url?: string,
+      cip_code: string 
+    }) {
       const existingItem = this.items.find(item => item.productId === product.id)
       
-      if (existingItem) {
-        existingItem.quantity++
-      } else {
+      if (!existingItem) {
         this.items.push({
           productId: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1
+          title: product.title,
+          short_desc: product.short_desc,
+          image_url: product.image_url,
+          cip_code: product.cip_code
         })
       }
     },
@@ -37,13 +43,6 @@ export const useCartStore = defineStore('cart', {
       const index = this.items.findIndex(item => item.productId === productId)
       if (index > -1) {
         this.items.splice(index, 1)
-      }
-    },
-
-    updateQuantity(productId: string, quantity: number) {
-      const item = this.items.find(item => item.productId === productId)
-      if (item) {
-        item.quantity = Math.max(1, quantity)
       }
     },
 
