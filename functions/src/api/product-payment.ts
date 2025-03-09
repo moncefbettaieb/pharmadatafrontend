@@ -14,23 +14,25 @@ interface ProductPaymentItem {
 
 export const createProductPaymentSession = onCall({
   region: 'europe-west9',
-  cors: [
-    'https://pharmadata-frontend-staging-383194447870.europe-west9.run.app',
-    'http://localhost:3000'
-  ],
-  maxInstances: 10,
-  enforceAppCheck: false // Désactiver temporairement App Check
+  maxInstances: 10
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
   }
 
-  const { items } = request.data as { items: ProductPaymentItem[] }
-  if (!items || !Array.isArray(items) || items.length === 0) {
-    throw new HttpsError('invalid-argument', 'La liste des produits est requise')
-  }
-
   try {
+    const { items } = request.data as { items: ProductPaymentItem[] }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new HttpsError('invalid-argument', 'Liste de produits invalide')
+    }
+
+    // Valider chaque item
+    items.forEach(item => {
+      if (!item.productId || !item.title || !item.cip_code) {
+        throw new HttpsError('invalid-argument', 'Données de produit incomplètes')
+      }
+    })
+
     const db = admin.firestore()
     const userId = request.auth.uid
 
@@ -59,7 +61,7 @@ export const createProductPaymentSession = onCall({
       customer: customer.id,
       payment_method_types: ['card'],
       mode: 'payment',
-      line_items: items.map(item => ({
+      line_items: items.map((item: ProductPaymentItem) => ({
         price_data: {
           currency: 'eur',
           product_data: {
@@ -74,8 +76,8 @@ export const createProductPaymentSession = onCall({
         },
         quantity: 1
       })),
-      success_url: `${process.env.FRONTEND_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel`,
+      success_url: `${process.env.FRONTEND_URL}/paymentCart/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/paymentCart/cancel`,
       metadata: {
         userId,
         productIds: JSON.stringify(items.map(item => item.productId))
@@ -87,7 +89,7 @@ export const createProductPaymentSession = onCall({
       userId,
       items,
       status: 'pending',
-      amount: items.length * 50, // 0.50€ par fiche
+      amount: items.length * 50,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
 
@@ -98,64 +100,46 @@ export const createProductPaymentSession = onCall({
   }
 })
 
-// Webhook pour gérer le succès du paiement
 export const handleProductPaymentWebhook = onCall({
   region: 'europe-west9',
-  cors: [
-    'https://pharmadata-frontend-staging-383194447870.europe-west9.run.app',
-    'http://localhost:3000'
-  ],
-  maxInstances: 10,
-  enforceAppCheck: false // Désactiver temporairement App Check
+  maxInstances: 10
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
   }
 
-  const { sessionId } = request.data
-  if (!sessionId) {
-    throw new HttpsError('invalid-argument', 'ID de session requis')
+  const { event } = request.data
+  if (!event) {
+    throw new HttpsError('invalid-argument', 'Événement Stripe manquant')
   }
 
   try {
     const db = admin.firestore()
-    const sessionDoc = await db.collection('product_payment_sessions').doc(sessionId).get()
-    
-    if (!sessionDoc.exists) {
-      throw new HttpsError('not-found', 'Session de paiement non trouvée')
-    }
 
-    const sessionData = sessionDoc.data()
-    if (sessionData?.userId !== request.auth.uid) {
-      throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
-    }
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object
+      const sessionId = session.id
 
-    // Vérifier le paiement avec Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
-    if (session.payment_status !== 'paid') {
-      throw new HttpsError('failed-precondition', 'Le paiement n\'est pas complété')
-    }
-
-    // Mettre à jour le statut de la session
-    await sessionDoc.ref.update({
-      status: 'completed',
-      completedAt: admin.firestore.FieldValue.serverTimestamp()
-    })
-
-    // Stocker l'uid pour une utilisation ultérieure
-    const uid = request.auth.uid
-
-    // Créer les entrées pour les fichiers
-    const productIds = JSON.parse(session.metadata?.productIds || '[]')
-    await Promise.all(productIds.map(async (productId: string) => {
-      await db.collection('product_files').add({
-        userId: uid,
-        productId,
-        sessionId,
-        status: 'pending',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      // Mettre à jour le statut de la session
+      await db.collection('product_payment_sessions').doc(sessionId).update({
+        status: 'completed',
+        completedAt: admin.firestore.FieldValue.serverTimestamp()
       })
-    }))
+
+      // Créer les entrées pour les fichiers
+      const productIds = JSON.parse(session.metadata.productIds)
+      await Promise.all(
+        productIds.map(async (productId: string) => {
+          await db.collection('product_files').add({
+            sessionId,
+            productId,
+            userId: session.metadata.userId,
+            status: 'pending',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          })
+        })
+      )
+    }
 
     return { success: true }
   } catch (error) {

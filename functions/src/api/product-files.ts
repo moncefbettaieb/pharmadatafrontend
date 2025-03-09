@@ -18,10 +18,14 @@ export const getProductFiles = onCall({
   region: 'europe-west9',
   cors: [
     'https://pharmadata-frontend-staging-383194447870.europe-west9.run.app',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    '*'
   ],
   maxInstances: 10,
-  enforceAppCheck: false // Désactiver temporairement App Check
+  timeoutSeconds: 300,
+  memory: '256MiB',
+  minInstances: 0,
+  ingressSettings: 'ALLOW_ALL'
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')

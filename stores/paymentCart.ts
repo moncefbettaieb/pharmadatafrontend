@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { loadStripe } from '@stripe/stripe-js'
+import { httpsCallable } from 'firebase/functions'
 
 interface CartItem {
   productId: string
@@ -25,8 +26,8 @@ export const usePaymentStore = defineStore('paymentCart', {
       this.error = null
       
       try {
-        const { $callFunction } = useNuxtApp()
-        if (!$callFunction) {
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
@@ -35,7 +36,9 @@ export const usePaymentStore = defineStore('paymentCart', {
           throw new Error('La clé publique Stripe n\'est pas configurée')
         }
 
-        const { sessionId } = await $callFunction('createProductPaymentSession', { 
+        // Appeler la Cloud Function
+        const createSessionCall = httpsCallable($functions, 'createProductPaymentSession')
+        const result = await createSessionCall({
           items: items.map(item => ({
             productId: item.productId,
             title: item.title,
@@ -43,17 +46,14 @@ export const usePaymentStore = defineStore('paymentCart', {
           }))
         })
 
+        const { sessionId } = result.data as { sessionId: string }
+
         const stripe = await loadStripe(config.public.stripePublicKey)
         if (!stripe) {
           throw new Error('Erreur lors du chargement de Stripe')
         }
 
-        const { error } = await stripe.redirectToCheckout({ 
-          sessionId,
-          successUrl: `${window.location.origin}/paymentCart/success?session_id=${sessionId}`,
-          cancelUrl: `${window.location.origin}/paymentCart/cancel`
-        })
-        
+        const { error } = await stripe.redirectToCheckout({ sessionId })
         if (error) {
           throw error
         }
@@ -71,12 +71,15 @@ export const usePaymentStore = defineStore('paymentCart', {
       this.selectedFormat = format
       
       try {
-        const { $callFunction } = useNuxtApp()
-        if (!$callFunction) {
+        const { $functions } = useNuxtApp()
+        if (!$functions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const { files } = await $callFunction('getProductFiles', { sessionId, format })
+        const getFilesCall = httpsCallable($functions, 'getProductFiles')
+        const result = await getFilesCall({ sessionId, format })
+        
+        const { files } = result.data as { files: string[] }
         this.downloadUrls = files
         
         return files
