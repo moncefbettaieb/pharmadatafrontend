@@ -56,7 +56,7 @@
         <div v-for="product in productsStore.products" :key="product.id" class="group relative">
           <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
             <img 
-              :src="product.image_url || '/placeholder-product.jpg'" 
+              :src="product.image_url || 'placeholder-product.png'" 
               :alt="product.title"
               class="h-full w-full object-cover object-center lg:h-full lg:w-full"
             >
@@ -79,7 +79,7 @@
             </p>
           </div>
           <div class="mt-4 flex items-center justify-between">
-            <p class="text-sm font-medium text-gray-900">0.50€</p>
+            <p class="text-sm font-medium text-gray-900">0.70€</p>
             <button
               @click="addToCart(product)"
               class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
@@ -217,7 +217,7 @@ const addToCart = (product: any) => {
   if (!isInCart(product.id)) {
     cartStore.addToCart({
       ...product,
-      price: 0.5,
+      price: 0.7,
       quantity: 1
     })
     toast.success('Fiche produit ajoutée au panier')

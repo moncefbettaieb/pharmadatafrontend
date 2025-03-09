@@ -22,7 +22,7 @@
                 <!-- Image du produit -->
                 <div class="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                   <img 
-                    :src="item.image_url || '/placeholder-product.jpg'" 
+                    :src="item.image_url || 'placeholder-product.png'" 
                     :alt="item.title"
                     class="h-full w-full object-cover object-center"
                   >
@@ -32,7 +32,7 @@
                   <div>
                     <div class="flex justify-between text-base font-medium text-gray-900">
                       <h3>{{ item.title }}</h3>
-                      <p class="ml-4">0.50€</p>
+                      <p class="ml-4">0.70€</p>
                     </div>
                     <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ item.short_desc }}</p>
                   </div>
@@ -58,7 +58,7 @@
         <div class="mt-8 border-t border-gray-200 pt-8">
           <div class="flex justify-between text-base font-medium text-gray-900">
             <p>Total</p>
-            <p>{{ (cartStore.items.length * 0.50).toFixed(2) }}€</p>
+            <p>{{ (cartStore.items.length * 0.70).toFixed(2) }}€</p>
           </div>
           <p class="mt-0.5 text-sm text-gray-500">TVA incluse.</p>
           
@@ -95,7 +95,7 @@
 
 <script setup lang="ts">
 import { useCartStore } from '~/stores/cart'
-import { usePaymentStore } from '~/stores/payment'
+import { usePaymentStore } from '~/stores/paymentCart'
 import { useToast } from 'vue-toastification'
 
 const cartStore = useCartStore()
@@ -109,12 +109,7 @@ const removeFromCart = (productId: string): void => {
 
 const proceedToCheckout = async (): Promise<void> => {
   try {
-    const items = cartStore.items.map(item => ({
-      productId: item.productId,
-      quantity: 1
-    }))
-    
-    await paymentStore.createCheckoutSession(items)
+    await paymentStore.createProductPaymentSession(cartStore.items)
   } catch (error) {
     toast.error("Une erreur s'est produite lors de la redirection vers le paiement")
   }
