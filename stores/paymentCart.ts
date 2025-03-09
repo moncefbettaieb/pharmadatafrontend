@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { loadStripe } from '@stripe/stripe-js'
-import { httpsCallable } from 'firebase/functions'
 
 interface CartItem {
   productId: string
@@ -26,8 +25,8 @@ export const usePaymentStore = defineStore('paymentCart', {
       this.error = null
       
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $callFunction } = useNuxtApp()
+        if (!$callFunction) {
           throw new Error('Firebase Functions non initialisé')
         }
 
@@ -36,16 +35,13 @@ export const usePaymentStore = defineStore('paymentCart', {
           throw new Error('La clé publique Stripe n\'est pas configurée')
         }
 
-        const createProductPaymentCall = httpsCallable($functions, 'createProductPaymentSession')
-        const result = await createProductPaymentCall({ 
+        const { sessionId } = await $callFunction('createProductPaymentSession', { 
           items: items.map(item => ({
             productId: item.productId,
             title: item.title,
             cip_code: item.cip_code
           }))
         })
-        
-        const { sessionId } = result.data as { sessionId: string }
 
         const stripe = await loadStripe(config.public.stripePublicKey)
         if (!stripe) {
@@ -75,15 +71,12 @@ export const usePaymentStore = defineStore('paymentCart', {
       this.selectedFormat = format
       
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $callFunction } = useNuxtApp()
+        if (!$callFunction) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const getProductFilesCall = httpsCallable($functions, 'getProductFiles')
-        const result = await getProductFilesCall({ sessionId, format })
-        
-        const { files } = result.data as { files: string[] }
+        const { files } = await $callFunction('getProductFiles', { sessionId, format })
         this.downloadUrls = files
         
         return files

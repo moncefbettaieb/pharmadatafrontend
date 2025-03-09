@@ -14,7 +14,12 @@ interface ProductPaymentItem {
 
 export const createProductPaymentSession = onCall({
   region: 'europe-west9',
-  maxInstances: 10
+  cors: [
+    'https://pharmadata-frontend-staging-383194447870.europe-west9.run.app',
+    'http://localhost:3000'
+  ],
+  maxInstances: 10,
+  enforceAppCheck: false // Désactiver temporairement App Check
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
@@ -96,7 +101,12 @@ export const createProductPaymentSession = onCall({
 // Webhook pour gérer le succès du paiement
 export const handleProductPaymentWebhook = onCall({
   region: 'europe-west9',
-  maxInstances: 10
+  cors: [
+    'https://pharmadata-frontend-staging-383194447870.europe-west9.run.app',
+    'http://localhost:3000'
+  ],
+  maxInstances: 10,
+  enforceAppCheck: false // Désactiver temporairement App Check
 }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
@@ -139,7 +149,7 @@ export const handleProductPaymentWebhook = onCall({
     const productIds = JSON.parse(session.metadata?.productIds || '[]')
     await Promise.all(productIds.map(async (productId: string) => {
       await db.collection('product_files').add({
-        userId: uid, // Utiliser l'uid stocké
+        userId: uid,
         productId,
         sessionId,
         status: 'pending',
