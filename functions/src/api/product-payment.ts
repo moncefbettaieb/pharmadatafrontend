@@ -21,6 +21,11 @@ export const createProductPaymentSession = onCall({
   }
 
   try {
+    const frontendUrl = process.env.FRONTEND_URL
+    if (!frontendUrl) {
+      throw new Error('FRONTEND_URL non configurée')
+    }
+
     const { items } = request.data as { items: ProductPaymentItem[] }
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new HttpsError('invalid-argument', 'Liste de produits invalide')
@@ -72,12 +77,12 @@ export const createProductPaymentSession = onCall({
               cip_code: item.cip_code
             }
           },
-          unit_amount: 50, // 0.50€ en centimes
+          unit_amount: 70,
         },
         quantity: 1
       })),
-      success_url: `${process.env.FRONTEND_URL}/paymentCart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/paymentCart/cancel`,
+      success_url: `${frontendUrl}/paymentCart/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/paymentCart/cancel`,
       metadata: {
         userId,
         productIds: JSON.stringify(items.map(item => item.productId))

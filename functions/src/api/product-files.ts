@@ -31,7 +31,7 @@ export const getProductFiles = onCall({
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
   }
 
-  const { sessionId, format = 'pdf' } = request.data
+  const { sessionId, format = 'json' } = request.data
   if (!sessionId) {
     throw new HttpsError('invalid-argument', 'ID de session requis')
   }
