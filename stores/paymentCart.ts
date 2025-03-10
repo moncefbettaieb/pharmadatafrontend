@@ -10,7 +10,7 @@ interface CartItem {
   cip_code: string
 }
 
-type FileFormat = 'pdf' | 'json'
+type FileFormat = 'json' | 'pdf'
 
 export const usePaymentStore = defineStore('paymentCart', {
   state: () => ({
@@ -65,7 +65,7 @@ export const usePaymentStore = defineStore('paymentCart', {
       }
     },
 
-    async getProductFiles(sessionId: string, format: FileFormat = 'pdf') {
+    async getProductFiles(sessionId: string, format: FileFormat = 'json') {
       this.loading = true
       this.error = null
       this.selectedFormat = format

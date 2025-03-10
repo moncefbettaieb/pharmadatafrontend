@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { usePaymentStore } from '~/stores/payment'
+import { usePaymentStore } from '~/stores/paymentCart'
 import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
 
