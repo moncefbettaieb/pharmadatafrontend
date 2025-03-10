@@ -95,14 +95,10 @@ const selectPlan = async (plan) => {
     }
 
     // Vérifier que la clé Stripe est disponible
-    console.log('Clé publique Stripe:', config.public.stripePublicKey)
-    console.log('Clé secrete Stripe:', config.public.stripeSecretKey)
     if (!config.public.stripePublicKey) {
       console.error('Clé publique Stripe manquante dans la configuration')
       throw new Error('Configuration Stripe manquante')
     }
-    
-    console.log('Clé publique Stripe:', config.public.stripePublicKey)
 
     // Initialiser Stripe
     const stripe = await loadStripe(config.public.stripePublicKey)
@@ -113,19 +109,11 @@ const selectPlan = async (plan) => {
     // Appeler la Cloud Function
     const createSubscriptionCall = httpsCallable($functions, 'createSubscription')
     
-    console.log('Appel de la fonction avec les paramètres:', {
-      priceId: plan.id,
-      successUrl: `${window.location.origin}/payment/success`,
-      cancelUrl: `${window.location.origin}/payment/cancel`
-    })
-    
     const result = await createSubscriptionCall({
       priceId: plan.id,
       successUrl: `${window.location.origin}/payment/success`,
       cancelUrl: `${window.location.origin}/payment/cancel`
     })
-
-    console.log('Résultat de la fonction:', result)
     
     const { sessionId } = result.data
     if (!sessionId) {

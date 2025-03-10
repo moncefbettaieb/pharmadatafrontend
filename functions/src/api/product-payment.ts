@@ -21,6 +21,11 @@ export const createProductPaymentSession = onCall({
   }
 
   try {
+    const frontendUrl = process.env.FRONTEND_URL
+    if (!frontendUrl) {
+      throw new Error('FRONTEND_URL non configurée')
+    }
+
     const { items } = request.data as { items: ProductPaymentItem[] }
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw new HttpsError('invalid-argument', 'Liste de produits invalide')
@@ -72,12 +77,12 @@ export const createProductPaymentSession = onCall({
               cip_code: item.cip_code
             }
           },
-          unit_amount: 50, // 0.50€ en centimes
+          unit_amount: 70,
         },
         quantity: 1
       })),
-      success_url: `${process.env.FRONTEND_URL}/paymentCart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/paymentCart/cancel`,
+      success_url: `${frontendUrl}/paymentCart/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/paymentCart/cancel`,
       metadata: {
         userId,
         productIds: JSON.stringify(items.map(item => item.productId))
@@ -89,7 +94,7 @@ export const createProductPaymentSession = onCall({
       userId,
       items,
       status: 'pending',
-      amount: items.length * 50,
+      amount: (items.length * 70) / 100,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
 
@@ -97,53 +102,5 @@ export const createProductPaymentSession = onCall({
   } catch (error) {
     console.error('Erreur lors de la création de la session de paiement:', error)
     throw new HttpsError('internal', 'Erreur lors de la création de la session de paiement')
-  }
-})
-
-export const handleProductPaymentWebhook = onCall({
-  region: 'europe-west9',
-  maxInstances: 10
-}, async (request) => {
-  if (!request.auth) {
-    throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
-  }
-
-  const { event } = request.data
-  if (!event) {
-    throw new HttpsError('invalid-argument', 'Événement Stripe manquant')
-  }
-
-  try {
-    const db = admin.firestore()
-
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object
-      const sessionId = session.id
-
-      // Mettre à jour le statut de la session
-      await db.collection('product_payment_sessions').doc(sessionId).update({
-        status: 'completed',
-        completedAt: admin.firestore.FieldValue.serverTimestamp()
-      })
-
-      // Créer les entrées pour les fichiers
-      const productIds = JSON.parse(session.metadata.productIds)
-      await Promise.all(
-        productIds.map(async (productId: string) => {
-          await db.collection('product_files').add({
-            sessionId,
-            productId,
-            userId: session.metadata.userId,
-            status: 'pending',
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-          })
-        })
-      )
-    }
-
-    return { success: true }
-  } catch (error) {
-    console.error('Erreur lors du traitement du webhook:', error)
-    throw new HttpsError('internal', 'Erreur lors du traitement du webhook')
   }
 })

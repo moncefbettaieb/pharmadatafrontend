@@ -18,15 +18,14 @@ export const getProductFiles = onCall({
   region: 'europe-west9',
   cors: [
     'https://pharmadata-frontend-staging-383194447870.europe-west9.run.app',
-    'http://localhost:3000',
-    '*'
+    'http://localhost:3000'
   ],
   maxInstances: 10,
-  timeoutSeconds: 300,
-  memory: '256MiB',
-  minInstances: 0,
-  ingressSettings: 'ALLOW_ALL'
+  invoker: 'public', // Permettre l'accès public
+  timeoutSeconds: 60,
+  memory: '256MiB'
 }, async (request) => {
+  // Vérifier l'authentification Firebase
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
   }
@@ -52,10 +51,13 @@ export const getProductFiles = onCall({
     }
 
     const sessionData = sessionDoc.data()
+    
+    // Vérifier que l'utilisateur est bien le propriétaire de la session
     if (sessionData?.userId !== request.auth.uid) {
       throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
     }
 
+    // Vérifier que le paiement est bien complété
     if (sessionData?.status !== 'completed') {
       throw new HttpsError('failed-precondition', 'Le paiement n\'est pas encore complété')
     }
@@ -68,19 +70,18 @@ export const getProductFiles = onCall({
         if (!productDoc.exists) {
           throw new HttpsError('not-found', `Produit non trouvé: ${productId}`)
         }
-        const data = productDoc.data() as Omit<ProductData, 'id'>
-        return { id: productId, ...data } as ProductData
+        return { id: productId, ...productDoc.data() } as ProductData
       })
     )
 
-    // Générer les fichiers selon le format demandé
+    // Générer les fichiers
     const files = await Promise.all(
       productsData.map(async (productData) => {
         const fileName = `${sessionId}/${productData.cip_code}.${format}`
         const file = bucket.file(fileName)
 
         if (format === 'json') {
-          // Générer le fichier JSON
+          // Générer JSON
           const jsonContent = JSON.stringify(productData, null, 2)
           await file.save(jsonContent, {
             contentType: 'application/json',
@@ -89,7 +90,7 @@ export const getProductFiles = onCall({
             }
           })
         } else {
-          // Générer le PDF
+          // Générer PDF
           const doc = new PDFDocument()
           const chunks: Buffer[] = []
 
@@ -104,7 +105,7 @@ export const getProductFiles = onCall({
             })
           })
 
-          // Ajouter le contenu au PDF
+          // Contenu du PDF
           doc.fontSize(20).text('Fiche Produit', { align: 'center' })
           doc.moveDown()
           doc.fontSize(14).text(`CIP: ${productData.cip_code}`)
@@ -119,33 +120,13 @@ export const getProductFiles = onCall({
           doc.end()
         }
 
-        // Générer une URL signée pour le téléchargement
+        // Générer URL signée
         const [url] = await file.getSignedUrl({
           action: 'read',
           expires: Date.now() + 24 * 60 * 60 * 1000 // 24 heures
         })
 
         return url
-      })
-    )
-
-    // Mettre à jour le statut des fichiers
-    await Promise.all(
-      productIds.map(async (productId: string) => {
-        const fileDoc = await db.collection('product_files')
-          .where('sessionId', '==', sessionId)
-          .where('productId', '==', productId)
-          .limit(1)
-          .get()
-
-        if (!fileDoc.empty) {
-          await fileDoc.docs[0].ref.update({
-            status: 'completed',
-            format,
-            downloadUrl: files[productIds.indexOf(productId)],
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          })
-        }
       })
     )
 

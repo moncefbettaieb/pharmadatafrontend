@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { usePaymentStore } from '~/stores/payment'
+import { usePaymentStore } from '~/stores/paymentCart'
 import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
 
@@ -105,18 +105,25 @@ const changeFormat = async (format) => {
 }
 
 onMounted(async () => {
+  console.log('Montage du composant success.vue')
   const sessionId = route.query.session_id
+  console.log('Session ID:', sessionId)
   
   if (!sessionId) {
+    console.warn('Pas de session ID')
     error.value = 'Session de paiement invalide'
     loading.value = false
     return
   }
 
   try {
-    downloadUrls.value = await paymentStore.getProductFiles(sessionId)
+    console.log('Appel de getProductFiles...')
+    const files = await paymentStore.getProductFiles(sessionId)
+    console.log('Fichiers reçus:', files)
+    downloadUrls.value = files
     cartStore.clearCart()
   } catch (err) {
+    console.error('Erreur complète:', err)
     error.value = "Une erreur s'est produite lors de la récupération de vos fichiers"
     toast.error(error.value)
   } finally {
