@@ -10,9 +10,38 @@
         <div v-else>
           <h2 class="text-2xl font-bold text-green-600 mb-4">Paiement réussi !</h2>
           
-          <div v-if="error" class="mb-4 text-red-600">
-            {{ error }}
+          <div v-if="error" class="mb-6">
+            <div class="text-red-600 mb-4">
+              {{ error }}
+            </div>
+            <!-- Formulaire de contact support -->
+            <div class="bg-gray-50 p-4 rounded-md">
+              <h3 class="text-sm font-medium text-gray-900 mb-2">Contacter le support</h3>
+              <form @submit.prevent="handleSupportEmail" class="space-y-4">
+                <div>
+                  <label for="message" class="block text-sm font-medium text-gray-700">
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    v-model="supportMessage"
+                    rows="4"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    placeholder="Décrivez votre problème..."
+                    required
+                  ></textarea>
+                </div>
+                <button
+                  type="submit"
+                  :disabled="sendingEmail"
+                  class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  {{ sendingEmail ? 'Envoi en cours...' : 'Envoyer' }}
+                </button>
+              </form>
+            </div>
           </div>
+
           
           <div v-else>
             <p class="text-gray-600 mb-6">
@@ -79,6 +108,7 @@
 import { usePaymentStore } from '~/stores/paymentCart'
 import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
+import { httpsCallable } from 'firebase/functions'
 
 const route = useRoute()
 const paymentStore = usePaymentStore()
@@ -88,6 +118,8 @@ const toast = useToast()
 const loading = ref(true)
 const error = ref(null)
 const downloadUrls = ref([])
+const supportMessage = ref('')
+const sendingEmail = ref(false)
 
 const changeFormat = async (format) => {
   const sessionId = route.query.session_id
@@ -101,6 +133,31 @@ const changeFormat = async (format) => {
     toast.error(error.value)
   } finally {
     loading.value = false
+  }
+}
+
+const handleSupportEmail = async () => {
+  if (!supportMessage.value.trim()) return
+
+  sendingEmail.value = true
+  try {
+    const { $functions } = useNuxtApp()
+    if (!$functions) throw new Error('Firebase Functions non initialisé')
+
+    const sendEmailCall = httpsCallable($functions, 'sendSupportEmail')
+    await sendEmailCall({
+      subject: 'Problème avec le téléchargement des fichiers',
+      message: supportMessage.value,
+      sessionId: route.query.session_id
+    })
+
+    toast.success('Votre message a été envoyé au support')
+    supportMessage.value = ''
+  } catch (err) {
+    toast.error("Une erreur s'est produite lors de l'envoi du mail")
+    console.error('Erreur envoi email:', err)
+  } finally {
+    sendingEmail.value = false
   }
 }
 

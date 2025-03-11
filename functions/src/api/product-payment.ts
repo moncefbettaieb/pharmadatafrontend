@@ -52,7 +52,7 @@ export const createProductPaymentSession = onCall({
       customer = await stripe.customers.create({
         email: request.auth.token.email,
         metadata: {
-          firebaseUID: userId
+          userId: userId
         }
       })
 

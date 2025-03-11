@@ -66,7 +66,7 @@ export const getProductFiles = onCall({
     const productIds = sessionData.items.map((item: any) => item.productId)
     const productsData = await Promise.all(
       productIds.map(async (productId: string) => {
-        const productDoc = await db.collection('products').doc(productId).get()
+        const productDoc = await db.collection('final_pharma_table').doc(productId).get()
         if (!productDoc.exists) {
           throw new HttpsError('not-found', `Produit non trouvé: ${productId}`)
         }

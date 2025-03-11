@@ -61,7 +61,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         customer = await stripe.customers.create({
           email: request.auth.token.email,
           metadata: {
-            firebaseUID: request.auth.uid
+            userId: request.auth.uid
           }
         })
         
@@ -81,7 +81,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         success_url: successUrl,
         cancel_url: cancelUrl,
         metadata: {
-          firebaseUID: request.auth.uid,
+          userId: request.auth.uid,
           priceId
         }
       })

@@ -7,6 +7,7 @@ import { createProductPaymentSession} from './api/product-payment'
 import { createSubscription} from './api/subscription-payment'
 import { handleStripeWebhook} from './api/webhook'
 import { getProductFiles } from './api/product-files'
+import { sendSupportEmail } from './api/support'
 import { 
   getNotifications, 
   markNotificationAsRead, 
@@ -24,6 +25,7 @@ import {
   updateErrorReport,
   deleteErrorReport
 } from './api/error-reporting'
+
 admin.initializeApp()
 
 // Exporter les fonctions
@@ -49,5 +51,6 @@ export {
   getProductByCip,
   createProductPaymentSession,
   createSubscription,
-  getProductFiles
+  getProductFiles,
+  sendSupportEmail
 }
