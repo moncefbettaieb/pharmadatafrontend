@@ -31,12 +31,6 @@ export const sendSupportEmail = onCall({
   const smtpPass = SMTP_PASS.value()
 
   try {
-    // Vérifier que la configuration SMTP est présente
-   /* if (!config.smtp?.user || !config.smtp?.pass) {
-      console.error('Configuration SMTP manquante')
-      throw new Error('Configuration SMTP incomplète')
-    } */
-
     const db = admin.firestore()
     const userId = request.auth.uid
 
@@ -110,7 +104,7 @@ export const sendSupportEmail = onCall({
       Détails de la session:
       - Statut: ${sessionData?.status}
       - Créée le: ${sessionData?.createdAt.toDate().toLocaleString()}
-      - Montant: ${sessionData?.amount / 100}€
+      - Montant: ${sessionData?.amount} €
     `
 
     const mailOptions = {
