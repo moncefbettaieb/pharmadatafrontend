@@ -108,6 +108,7 @@
 import { usePaymentStore } from '~/stores/paymentCart'
 import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
+import { httpsCallable } from 'firebase/functions'
 
 const route = useRoute()
 const paymentStore = usePaymentStore()
