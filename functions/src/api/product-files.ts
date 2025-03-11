@@ -22,7 +22,7 @@ export const getProductFiles = onCall({
   ],
   maxInstances: 10,
   invoker: 'public', // Permettre l'accès public
-  timeoutSeconds: 300,
+  timeoutSeconds: 60,
   memory: '256MiB'
 }, async (request) => {
   // Vérifier l'authentification Firebase
