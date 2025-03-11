@@ -1,17 +1,15 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
+import { defineBoolean, defineString } from 'firebase-functions/params'
 import * as nodemailer from 'nodemailer'
 
-// Configurer le transporteur d'email
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-})
+// Récupérer la configuration SMTP depuis Firebase
+// Paramètres simples (texte, chiffres, etc.)
+const SMTP_HOST = defineString('SMTP_HOST')
+const SMTP_PORT = defineString('SMTP_PORT')
+const SMTP_USER = defineString('SMTP_USER')
+const SMTP_SECURE = defineBoolean('SMTP_SECURE')
+const SMTP_PASS = defineString('SMTP_PASS')
 
 export const sendSupportEmail = onCall({
   region: 'europe-west9',
@@ -26,7 +24,19 @@ export const sendSupportEmail = onCall({
     throw new HttpsError('invalid-argument', 'Sujet, message et ID de session requis')
   }
 
+  const smtpHost = SMTP_HOST.value() || 'smtp.gmail.com'
+  const smtpPort = SMTP_PORT.value() || '587'
+  const smtpSecure = SMTP_SECURE.value()|| false
+  const smtpUser = SMTP_USER.value()
+  const smtpPass = SMTP_PASS.value()
+
   try {
+    // Vérifier que la configuration SMTP est présente
+   /* if (!config.smtp?.user || !config.smtp?.pass) {
+      console.error('Configuration SMTP manquante')
+      throw new Error('Configuration SMTP incomplète')
+    } */
+
     const db = admin.firestore()
     const userId = request.auth.uid
 
@@ -52,7 +62,41 @@ export const sendSupportEmail = onCall({
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
 
-    // Envoyer l'email au support
+    const smtpConfig = {
+        host: smtpHost,
+        port: parseInt(smtpPort, 10),
+        secure: smtpSecure, // dépend du port
+        auth: {
+            user: smtpUser,
+            pass: smtpPass,
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      }
+
+      console.log('Configuration SMTP:', {
+        host: smtpConfig.host,
+        port: smtpConfig.port,
+        secure: smtpConfig.secure,
+        user: smtpConfig.auth.user,
+        // Ne pas logger le mot de passe pour des raisons de sécurité
+      })
+
+    // Créer le transporteur SMTP
+    const transporter = nodemailer.createTransport(smtpConfig)
+    console.log('Transporter créé:', transporter)
+
+    // Vérifier la connexion SMTP
+    try {
+      await transporter.verify()
+      console.log('Connexion SMTP vérifiée avec succès')
+    } catch (error) {
+      console.error('Erreur de vérification SMTP:', error)
+      throw new Error('Erreur de connexion au serveur SMTP')
+    }
+
+    // Préparer et envoyer l'email
     const emailContent = `
       Nouveau ticket de support #${ticketRef.id}
       
@@ -69,12 +113,25 @@ export const sendSupportEmail = onCall({
       - Montant: ${sessionData?.amount / 100}€
     `
 
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
-      to: process.env.SUPPORT_EMAIL,
+    const mailOptions = {
+      from: smtpUser,
+      to: smtpUser,
       subject: `[Support] ${subject}`,
-      text: emailContent
+      text: emailContent,
+      headers: {
+        'X-Ticket-ID': ticketRef.id,
+        'X-Session-ID': sessionId
+      }
+    }
+
+    console.log('Envoi de l\'email avec les options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject
     })
+
+    await transporter.sendMail(mailOptions)
+    console.log('Email envoyé avec succès')
 
     // Créer une notification pour l'utilisateur
     await db.collection('notifications').add({
