@@ -17,7 +17,7 @@
             <!-- Formulaire de contact support -->
             <div class="bg-gray-50 p-4 rounded-md">
               <h3 class="text-sm font-medium text-gray-900 mb-2">Contacter le support</h3>
-              <form @submit.prevent="sendSupportEmail" class="space-y-4">
+              <form @submit.prevent="handleSupportEmail" class="space-y-4">
                 <div>
                   <label for="message" class="block text-sm font-medium text-gray-700">
                     Message
@@ -117,6 +117,8 @@ const toast = useToast()
 const loading = ref(true)
 const error = ref(null)
 const downloadUrls = ref([])
+const supportMessage = ref('')
+const sendingEmail = ref(false)
 
 const changeFormat = async (format) => {
   const sessionId = route.query.session_id
@@ -133,7 +135,7 @@ const changeFormat = async (format) => {
   }
 }
 
-const sendSupportEmail = async () => {
+const handleSupportEmail = async () => {
   if (!supportMessage.value.trim()) return
 
   sendingEmail.value = true
@@ -151,7 +153,7 @@ const sendSupportEmail = async () => {
     toast.success('Votre message a été envoyé au support')
     supportMessage.value = ''
   } catch (err) {
-    toast.error("Une erreur s'est produite lors de l'envoi du message")
+    toast.error("Une erreur s'est produite lors de l'envoi du mail")
     console.error('Erreur envoi email:', err)
   } finally {
     sendingEmail.value = false
