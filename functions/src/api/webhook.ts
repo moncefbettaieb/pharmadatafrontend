@@ -82,8 +82,8 @@ export const handleStripeWebhook = onRequest({
 })
 
 async function handleSubscriptionPayment(session: Stripe.Checkout.Session, db: FirebaseFirestore.Firestore) {
-  const { userId, items } = session.metadata || {}
-  if (!userId || !items) {
+  const { userId, priceId } = session.metadata || {}
+  if (!userId || !priceId) {
     throw new Error('Métadonnées de session incomplètes')
   }
 
@@ -91,7 +91,7 @@ async function handleSubscriptionPayment(session: Stripe.Checkout.Session, db: F
     userId,
     stripeSessionId: session.id,
     amount: (session.amount_total || 0) / 100,
-    items: JSON.parse(items),
+    priceId: priceId,
     status: 'completed',
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   }
