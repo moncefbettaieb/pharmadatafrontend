@@ -28,9 +28,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
     }
   
-    const { priceId, successUrl, cancelUrl } = request.data
+    const { priceId, requestsLimit, successUrl, cancelUrl } = request.data
     
-    if (!priceId || !successUrl || !cancelUrl) {
+    if (!priceId || !requestsLimit || !successUrl || !cancelUrl) {
       throw new HttpsError('invalid-argument', 'Paramètres manquants')
     }
     
@@ -82,7 +82,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         cancel_url: cancelUrl,
         metadata: {
           userId: request.auth.uid,
-          priceId
+          priceId,
+          requestsLimit
         }
       })
   

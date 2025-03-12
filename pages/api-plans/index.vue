@@ -109,6 +109,7 @@ const selectPlan = async (plan) => {
     
     const result = await createSubscriptionCall({
       priceId: plan.id,
+      requestsLimit: plan.requestsPerMonth,
       successUrl: `${window.location.origin}/payment/success`,
       cancelUrl: `${window.location.origin}/payment/cancel`
     })
