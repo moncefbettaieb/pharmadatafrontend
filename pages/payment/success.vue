@@ -7,21 +7,12 @@
           Merci pour votre achat. Vous recevrez un email de confirmation avec les détails de votre commande.
         </p>
         <NuxtLink
-          to="/products"
+          to="/account/api-tokens"
           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
         >
-          Retour aux produits
+          Commencer à utiliser l'API!
         </NuxtLink>
       </div>
     </div>
   </div>
 </template>
-
-<script setup>
-import { useCartStore } from '~/stores/cart'
-
-const cartStore = useCartStore()
-
-onMounted(() => {
-  cartStore.clearCart()
-})</script>

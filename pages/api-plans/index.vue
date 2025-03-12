@@ -11,14 +11,14 @@
         </p>
       </div>
 
-      <div class="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+      <div class="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-4">
         <div
           v-for="plan in plansStore.plans"
           :key="plan.id"
           class="flex flex-col justify-between rounded-3xl bg-white p-8 ring-1 ring-gray-200 xl:p-10"
           :class="{
             'lg:z-10 lg:rounded-b-none': plan.id === 'pro',
-            'lg:mt-8': plan.id !== 'pro'
+            'lg:mt-0': plan.id !== 'pro'
           }"
         >
           <div>
@@ -45,22 +45,13 @@
           </div>
           <button
             @click="selectPlan(plan)"
-            :disabled="!user || loading"
+            :disabled="loading"
             class="mt-8 block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span v-if="loading">Chargement...</span>
-            <span v-else>{{ user ? 'Sélectionner ce plan' : 'Connectez-vous pour souscrire' }}</span>
+            <span v-else>Sélectionner ce plan</span>
           </button>
         </div>
-      </div>
-
-      <div v-if="!user" class="mt-8 text-center">
-        <p class="text-gray-600">
-          Vous devez être connecté pour souscrire à un plan.
-          <NuxtLink to="/login" class="text-indigo-600 hover:text-indigo-500">
-            Se connecter
-          </NuxtLink>
-        </p>
       </div>
     </div>
   </div>
@@ -69,7 +60,7 @@
 <script setup>
 import { useAuthStore } from '~/stores/auth'
 import { usePlansStore } from '~/stores/plans'
-import { useToast } from 'vue-toastification'
+import { useToast } from 'vue-toastification/dist/index.mjs'
 import { loadStripe } from '@stripe/stripe-js'
 import { httpsCallable } from 'firebase/functions'
 import { storeToRefs } from 'pinia'
@@ -81,20 +72,27 @@ const toast = useToast()
 const config = useRuntimeConfig()
 const loading = ref(false)
 const { $functions } = useNuxtApp()
+const router = useRouter()
 
 const selectPlan = async (plan) => {
   if (!user.value) {
-    toast.error('Veuillez vous connecter pour souscrire à un plan')
+    // Rediriger vers la page de connexion
+    router.push('/login')
     return
   }
 
   loading.value = true
+  // Si c'est le plan gratuit, rediriger vers la page des tokens API
+  if (plan.id === 'free') {
+    router.push('/account/api-tokens')
+    return
+  }
   try {
     if (!$functions) {
       throw new Error('Firebase Functions non initialisé')
     }
 
-    // Vérifier que la clé Stripe est disponible
+    console.log('Clé publique Stripe:', config.public.stripePublicKey)
     if (!config.public.stripePublicKey) {
       console.error('Clé publique Stripe manquante dans la configuration')
       throw new Error('Configuration Stripe manquante')
@@ -111,25 +109,24 @@ const selectPlan = async (plan) => {
     
     const result = await createSubscriptionCall({
       priceId: plan.id,
+      requestsLimit: plan.requestsPerMonth,
       successUrl: `${window.location.origin}/payment/success`,
       cancelUrl: `${window.location.origin}/payment/cancel`
     })
-    
+
     const { sessionId } = result.data
     if (!sessionId) {
-      console.error('Réponse de la fonction:', result.data)
       throw new Error('Session ID manquant dans la réponse')
     }
 
     // Rediriger vers Stripe Checkout
     const { error } = await stripe.redirectToCheckout({ sessionId })
     if (error) {
-      console.error('Erreur Stripe:', error)
       throw error
     }
   } catch (error) {
     console.error('Erreur complète:', error)
-    toast.error("Une erreur s'est produite lors de la redirection vers le paiement")
+    toast.error(error.message || "Une erreur s'est produite lors de la redirection vers le paiement")
   } finally {
     loading.value = false
   }

@@ -162,7 +162,7 @@ import { useToast } from 'vue-toastification'
 const authStore = useAuthStore()
 const router = useRouter()
 const toast = useToast()
-
+const { user } = storeToRefs(authStore)
 const isLogin = ref(true)
 const isPhoneLogin = ref(false)
 const email = ref('')
@@ -171,13 +171,27 @@ const displayName = ref('')
 const phoneNumber = ref('')
 const verificationCode = ref('')
 
+// Rediriger vers la page d'accueil si l'utilisateur est déjà connecté
+onMounted(() => {
+  if (user.value) {
+    router.push('/account/api-tokens')
+  }
+})
+
+// Observer les changements de l'état de l'utilisateur
+watch(user, (newUser) => {
+  if (newUser) {
+    router.push('/account/api-tokens')
+  }
+})
+
 const handleSubmit = async () => {
   try {
     if (isPhoneLogin.value) {
       if (authStore.verificationId) {
         await authStore.verifyPhoneCode(verificationCode.value)
         toast.success('Connexion réussie')
-        router.push('/')
+        router.push('/account/api-tokens')
       } else {
         await authStore.sendPhoneVerification(phoneNumber.value)
         toast.success('Code de vérification envoyé')
@@ -185,7 +199,7 @@ const handleSubmit = async () => {
     } else if (isLogin.value) {
       await authStore.login(email.value, password.value)
       toast.success('Connexion réussie')
-      router.push('/')
+      router.push('/account/api-tokens')
     } else {
       await authStore.register({
         email: email.value,
@@ -193,7 +207,7 @@ const handleSubmit = async () => {
         displayName: displayName.value
       })
       toast.success('Inscription réussie')
-      router.push('/')
+      router.push('/account/api-tokens')
     }
   } catch (error) {
     toast.error(authStore.error || "Une erreur s'est produite")
@@ -204,7 +218,7 @@ const handleGoogleLogin = async () => {
   try {
     await authStore.loginWithGoogle()
     toast.success('Connexion réussie')
-    router.push('/')
+    router.push('/account/api-tokens')
   } catch (error) {
     toast.error(authStore.error || "Une erreur s'est produite")
   }

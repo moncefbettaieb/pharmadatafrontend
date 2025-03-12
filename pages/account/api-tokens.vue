@@ -52,6 +52,9 @@
         <!-- Utilisation de l'API -->
         <div v-if="apiStore.currentPlan" class="border-t border-gray-200 px-4 py-5 sm:p-6">
           <h3 class="text-base font-semibold leading-6 text-gray-900">Utilisation de l'API</h3>
+          <div class="mt-2 max-w-xl text-sm text-gray-500">
+            <p>Plan actuel :  {{ apiStore.currentPlan.name }}</p>
+          </div>
           <div class="mt-4">
             <div class="flex justify-between mb-2">
               <span class="text-sm font-medium text-gray-700">
@@ -163,7 +166,6 @@ import { useApiStore } from '~/stores/api'
 import { useToast } from 'vue-toastification'
 
 const apiStore = useApiStore()
-const config = useRuntimeConfig()
 const toast = useToast()
 
 onMounted(async () => {

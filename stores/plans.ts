@@ -12,6 +12,18 @@ export const usePlansStore = defineStore('plans', {
   state: () => ({
     plans: [
       {
+        id: 'free',
+        name: 'Gratuit',
+        price: 0,
+        requestsPerMonth: 100,
+        features: [
+          '100 requêtes API par mois',
+          'Documentation complète',
+          'Support par email',
+          'Idéal pour tester l\'API'
+        ]
+      },
+      {
         id: 'basic',
         name: 'Basique',
         price: 29.99,
