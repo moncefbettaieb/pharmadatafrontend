@@ -43,4 +43,5 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error)
   }
-}</script>
+}
+</script>

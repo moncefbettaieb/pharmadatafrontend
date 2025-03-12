@@ -162,7 +162,7 @@ import { useToast } from 'vue-toastification'
 const authStore = useAuthStore()
 const router = useRouter()
 const toast = useToast()
-
+const { user } = storeToRefs(authStore)
 const isLogin = ref(true)
 const isPhoneLogin = ref(false)
 const email = ref('')
@@ -170,6 +170,20 @@ const password = ref('')
 const displayName = ref('')
 const phoneNumber = ref('')
 const verificationCode = ref('')
+
+// Rediriger vers la page d'accueil si l'utilisateur est déjà connecté
+onMounted(() => {
+  if (user.value) {
+    router.push('/')
+  }
+})
+
+// Observer les changements de l'état de l'utilisateur
+watch(user, (newUser) => {
+  if (newUser) {
+    router.push('/')
+  }
+})
 
 const handleSubmit = async () => {
   try {

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { generateToken, revokeToken } from './api/tokens'
+import { generateToken, revokeToken, getTokenHistory } from './api/tokens'
 import { getApiUsage } from './api/usage'
 import { getProducts, getProductByCip } from './api/products'
 import { trackApiUsage, getApiStats } from './api/stats'
@@ -8,6 +8,7 @@ import { createSubscription} from './api/subscription-payment'
 import { handleStripeWebhook} from './api/webhook'
 import { getProductFiles } from './api/product-files'
 import { sendSupportEmail } from './api/support'
+import { rateLimit } from './utils/rate-limit'
 import { 
   getNotifications, 
   markNotificationAsRead, 
@@ -32,6 +33,7 @@ admin.initializeApp()
 export {
   generateToken,
   revokeToken,
+  getTokenHistory,
   getApiUsage,
   getProducts,
   handleStripeWebhook,
@@ -52,5 +54,6 @@ export {
   createProductPaymentSession,
   createSubscription,
   getProductFiles,
-  sendSupportEmail
+  sendSupportEmail,
+  rateLimit
 }

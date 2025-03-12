@@ -48,10 +48,11 @@ export const getApiUsage = onCall({
 
     const usage = usageQuery.docs.map(doc => {
       const data = doc.data()
+      const dailyLimit = Math.floor((subscriptionData.requestsPerMonth || 0) / 30) // Limite quotidienne approximative
       return {
         date: data.date.toDate().toISOString(),
-        requests: data.requests,
-        limit: subscriptionData.requestsPerMonth / 30 // Limite quotidienne approximative
+        requests: Math.max(0, Number(data.requests) || 0), // Assurer que requests est un nombre valide
+        limit: Math.max(0, dailyLimit) // Assurer que limit est un nombre valide
       }
     })
 
@@ -63,15 +64,18 @@ export const getApiUsage = onCall({
       .get()
 
     const totalRequestsThisMonth = currentMonthUsageQuery.docs.reduce(
-      (total, doc) => total + doc.data().requests,
+      (total, doc) => total + (Number(doc.data().requests) || 0),
       0
     )
 
+    const requestsPerMonth = Number(subscriptionData.requestsPerMonth) || 0
+    const remainingRequests = Math.max(0, requestsPerMonth - totalRequestsThisMonth)
+
     return {
       currentPlan: {
-        name: subscriptionData.name,
-        requestsPerMonth: subscriptionData.requestsPerMonth,
-        remainingRequests: Math.max(0, subscriptionData.requestsPerMonth - totalRequestsThisMonth)
+        name: subscriptionData.planId || 'Plan personnalisé',
+        requestsPerMonth: requestsPerMonth,
+        remainingRequests: remainingRequests
       },
       usage
     }
