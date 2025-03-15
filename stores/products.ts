@@ -93,7 +93,7 @@ export const useProductsStore = defineStore('products', {
       }
     },
 
-    async getProductByCip(cipCode: string) {
+    async getProductByCip(cip_code: string) {
       this.loading = true
       this.error = null
 
@@ -104,7 +104,7 @@ export const useProductsStore = defineStore('products', {
         }
 
         const getProductCall = httpsCallable($functions, 'getProductByCip')
-        const result = await getProductCall({ cipCode })
+        const result = await getProductCall({ cip_code })
 
         if (!result.data || typeof result.data !== 'object') {
           throw new Error('Réponse invalide du serveur')
@@ -116,14 +116,14 @@ export const useProductsStore = defineStore('products', {
         this.error = errorMessage
         // Log l'erreur avec un message plus descriptif
         if (error instanceof Error) {
-          console.error(`Erreur lors de la récupération du produit ${cipCode}: ${error.message}`, {
+          console.error(`Erreur lors de la récupération du produit ${cip_code}: ${error.message}`, {
             error,
-            cipCode
+            cip_code
           })
         } else {
-          console.error(`Erreur inconnue lors de la récupération du produit ${cipCode}:`, {
+          console.error(`Erreur inconnue lors de la récupération du produit ${cip_code}:`, {
             error,
-            cipCode
+            cip_code
           })
         }
         throw error
