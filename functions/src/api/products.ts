@@ -1,5 +1,6 @@
 import { onRequest, onCall, HttpsError } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
+import { Storage, GetSignedUrlConfig } from '@google-cloud/storage'
 
 interface Product {
   id: string
@@ -10,7 +11,8 @@ interface Product {
   sub_category1: string
   sub_category2: string
   short_desc: string
-  image_url?: string
+  image_url: string
+  images?: string[]
 }
 
 interface PaginationParams {
@@ -33,6 +35,51 @@ interface ProductsResponse {
     totalPages: number
     hasMore: boolean
   }
+}
+
+const storage = new Storage()
+
+
+async function generateSignedUrl(bucketName: string, filePath: string, expirySeconds = 3600): Promise<string> {
+  const options: GetSignedUrlConfig = {
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + expirySeconds * 1000,
+  };
+
+  const [url] = await storage
+    .bucket(bucketName)
+    .file(filePath)
+    .getSignedUrl(options);
+
+  return url;
+}
+
+async function listImagesForCip(
+  bucketName: string,
+  cip: string,
+  expirySeconds = 3600
+): Promise<string[]> {
+  console.log(`Recherche des fichiers pour CIP: ${cip}`);
+
+  // 1) Lister tous les fichiers GCS avec un prefix = "<cip>/"
+  const [files] = await storage.bucket(bucketName).getFiles({
+    prefix: cip + '/', // ex: "0070942904148/"
+  });
+
+  if (files.length === 0) {
+    console.log(`Aucune image trouvée pour ${cip}`);
+    return [];
+  }
+
+  console.log(`Fichiers trouvés pour ${cip}:`, files.map(f => f.name));
+
+  // 2) Générer les URLs signées
+  const urls = await Promise.all(
+    files.map((file) => generateSignedUrl(bucketName, file.name, expirySeconds))
+  );
+
+  return urls;
 }
 
 async function validateAndExtractToken(authHeader: string | undefined): Promise<string | null> {
@@ -110,6 +157,15 @@ export const getProducts = onCall({
       id: doc.id,
       ...doc.data()
     })) as Product[]
+    const bucketName = "pharma_images"
+    for (const p of products) {
+      const imageUrls = await listImagesForCip(bucketName, p.cip_code, 3600)
+      console.log(`Images trouvées pour ${p.cip_code}:`, imageUrls)
+      p.images = imageUrls.length > 0 ? imageUrls : []
+      if (imageUrls.length > 0) {
+        p.image_url = imageUrls[0];
+      }
+    }
 
     const response: ProductsResponse = {
       products,
@@ -152,8 +208,8 @@ export const getProductByCip = onRequest({
     return
   }
 
-  const cipCode = req.query.cipCode as string
-  if (!cipCode) {
+  const cip_code = req.query.cip_code as string
+  if (!cip_code) {
     res.status(400).json({ error: 'CIP code is required' })
     return
   }
@@ -161,7 +217,7 @@ export const getProductByCip = onRequest({
   try {
     const db = admin.firestore()
     const productDoc = await db.collection('final_pharma_table')
-      .where('cip_code', '==', cipCode)
+      .where('cip_code', '==', cip_code)
       .limit(1)
       .get()
 
@@ -171,9 +227,18 @@ export const getProductByCip = onRequest({
       return
     }
 
+    const productData = productDoc.docs[0].data() as Omit<Product, 'id'>
+
+    const bucketName = "pharma_images"
+    const imageUrls = await listImagesForCip(bucketName, cip_code, 3600)
+    console.log(`Images trouvées pour ${cip_code}:`, imageUrls)
+    productData.images = imageUrls.length > 0 ? imageUrls : []
+    if (imageUrls.length > 0) {
+      productData.image_url = imageUrls[0];
+    }
     const product = {
       id: productDoc.docs[0].id,
-      ...productDoc.docs[0].data() as Omit<Product, 'id'>
+      ...productData
     }
 
     await trackTokenUsage(tokenId, 'getProductByCip', Date.now() - startTime, true)
