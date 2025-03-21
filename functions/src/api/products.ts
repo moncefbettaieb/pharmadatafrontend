@@ -60,20 +60,14 @@ async function listImagesForCip(
   cip: string,
   expirySeconds = 3600
 ): Promise<string[]> {
-  console.log(`Recherche des fichiers pour CIP: ${cip}`);
-
   // 1) Lister tous les fichiers GCS avec un prefix = "<cip>/"
   const [files] = await storage.bucket(bucketName).getFiles({
     prefix: cip + '/', // ex: "0070942904148/"
   });
 
   if (files.length === 0) {
-    console.log(`Aucune image trouvée pour ${cip}`);
     return [];
   }
-
-  console.log(`Fichiers trouvés pour ${cip}:`, files.map(f => f.name));
-
   // 2) Générer les URLs signées
   const urls = await Promise.all(
     files.map((file) => generateSignedUrl(bucketName, file.name, expirySeconds))
@@ -160,7 +154,6 @@ export const getProducts = onCall({
     const bucketName = "pharma_images"
     for (const p of products) {
       const imageUrls = await listImagesForCip(bucketName, p.cip_code, 3600)
-      console.log(`Images trouvées pour ${p.cip_code}:`, imageUrls)
       p.images = imageUrls.length > 0 ? imageUrls : []
       if (imageUrls.length > 0) {
         p.image_url = imageUrls[0];
@@ -231,7 +224,6 @@ export const getProductByCip = onRequest({
 
     const bucketName = "pharma_images"
     const imageUrls = await listImagesForCip(bucketName, cip_code, 3600)
-    console.log(`Images trouvées pour ${cip_code}:`, imageUrls)
     productData.images = imageUrls.length > 0 ? imageUrls : []
     if (imageUrls.length > 0) {
       productData.image_url = imageUrls[0];
