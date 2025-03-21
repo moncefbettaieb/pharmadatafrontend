@@ -109,7 +109,7 @@ Authorization: Bearer {{ apiStore.token || 'votre_token' }}</pre>
               <h4 class="text-sm font-medium text-gray-900">Exemple de requête</h4>
               <pre class="mt-2 rounded-md bg-gray-50 p-4">
 curl -X GET \
-  https://europe-west9-fournisseur-data.cloudfunctions.net/getProducts \
+  https://europe-west9-fournisseur-data.cloudfunctions.net/getProductByCip?cip_code="12345" \
   -H 'Authorization: Bearer {{ apiStore.token || 'votre_token' }}'</pre>
             </div>
           </div>
