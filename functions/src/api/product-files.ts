@@ -2,16 +2,34 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https'
 import * as admin from 'firebase-admin'
 import * as PDFDocument from 'pdfkit'
 
-interface ProductData {
-  id: string
-  title: string
-  description: string
+interface Product {
+  cip_code: string
   brand: string
+  title: string
+  source: string
+  categorie: string
+  sous_categorie_1: string
+  sous_categorie_2: string
+  sous_categorie_3: string
+  combined_category: string
+  short_desc: string
+  long_desc: string
+  age_minimum: string
+  nombre_d_unites: string
+  indication_contre_indication: string
+  posologie: string
+  composition: string
+  contre_indication: string
+  last_update: string
+  categorie_id: number
+  taxonomy_id: number
+  taxonomy_name: string
   category: string
   sub_category1: string
   sub_category2: string
-  cip_code: string
-  [key: string]: any
+  sub_category3: string
+  image_url?: string
+  images?: string[]
 }
 
 export const getProductFiles = onCall({
@@ -70,7 +88,7 @@ export const getProductFiles = onCall({
         if (!productDoc.exists) {
           throw new HttpsError('not-found', `Produit non trouvé: ${productId}`)
         }
-        return { id: productId, ...productDoc.data() } as ProductData
+        return productDoc.data() as Product
       })
     )
 
@@ -79,10 +97,13 @@ export const getProductFiles = onCall({
       productsData.map(async (productData) => {
         const fileName = `${sessionId}/${productData.cip_code}.${format}`
         const file = bucket.file(fileName)
+        const filteredProduct = Object.fromEntries(
+          Object.entries(productData).filter(([_, value]) => value !== null && value !== undefined)
+        )
 
         if (format === 'json') {
           // Générer JSON
-          const jsonContent = JSON.stringify(productData, null, 2)
+          const jsonContent = JSON.stringify(filteredProduct, null, 2)
           await file.save(jsonContent, {
             contentType: 'application/json',
             metadata: {
@@ -112,11 +133,64 @@ export const getProductFiles = onCall({
           doc.fontSize(16).text(productData.title)
           doc.moveDown()
           doc.fontSize(12).text(`Marque: ${productData.brand}`)
-          doc.text(`Catégorie: ${productData.category}`)
-          doc.text(`Sous-catégorie 1: ${productData.sub_category1}`)
-          doc.text(`Sous-catégorie 2: ${productData.sub_category2}`)
           doc.moveDown()
-          doc.text(productData.description || '')
+          if (productData.sub_category1) {
+            doc.fontSize(12).text('Sous-catégorie 1:', { underline: true })
+            doc.text(productData.sub_category1)
+            doc.moveDown()
+          }
+          if (productData.sub_category2) {
+            doc.fontSize(12).text('Sous-catégorie 2:', { underline: true })
+            doc.text(productData.sub_category1)
+            doc.moveDown()
+          }
+          if (productData.sub_category3) {
+            doc.fontSize(12).text('Sous-catégorie 3:', { underline: true })
+            doc.text(productData.sub_category1)
+            doc.moveDown()
+          }
+          if (productData.short_desc) {
+            doc.fontSize(12).text('Description courte:', { underline: true })
+            doc.text(productData.short_desc)
+            doc.moveDown()
+          }
+          if (productData.long_desc) {
+            doc.fontSize(12).text('Description détaillée:', { underline: true })
+            doc.text(productData.long_desc)
+            doc.moveDown()
+          }
+          if (productData.composition) {
+            doc.fontSize(12).text('Composition:', { underline: true })
+            doc.text(productData.composition)
+            doc.moveDown()
+          }
+
+          if (productData.posologie) {
+            doc.fontSize(12).text('Posologie:', { underline: true })
+            doc.text(productData.posologie)
+            doc.moveDown()
+          }
+
+          if (productData.indication_contre_indication) {
+            doc.fontSize(12).text('Indications et Contre-indications:', { underline: true })
+            doc.text(productData.indication_contre_indication)
+            doc.moveDown()
+          }
+
+          if (productData.contre_indication) {
+            doc.fontSize(12).text('Contre-indications:', { underline: true })
+            doc.text(productData.contre_indication)
+            doc.moveDown()
+          }
+
+          // Informations complémentaires
+          if (productData.age_minimum) {
+            doc.text(`Âge minimum: ${productData.age_minimum}`)
+          }
+
+          if (productData.nombre_d_unites) {
+            doc.text(`Nombre d'unités: ${productData.nombre_d_unites}`)
+          }
           doc.end()
         }
 

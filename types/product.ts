@@ -1,0 +1,30 @@
+export interface Product {
+  id: string
+  cip_code: string
+  brand: string
+  title: string
+  source: string
+  categorie: string
+  sous_categorie_1: string
+  sous_categorie_2: string
+  sous_categorie_3: string
+  combined_category: string
+  short_desc: string
+  long_desc: string
+  age_minimum: string
+  nombre_d_unites: string
+  indication_contre_indication: string
+  posologie: string
+  composition: string
+  contre_indication: string
+  last_update: string
+  categorie_id: number
+  taxonomy_id: number
+  taxonomy_name: string
+  category: string
+  sub_category1: string
+  sub_category2: string
+  sub_category3: string
+  image_url?: string
+  images?: string[]
+}

@@ -4,34 +4,36 @@
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold tracking-tight text-gray-900">Nos Fiches Produits</h1>
         
-        <!-- Filtres -->
-        <div class="flex gap-4">
-          <select 
-            v-model="filters.category"
-            class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        <!-- Recherche par CIP -->
+        <div class="relative w-full sm:w-96">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            v-model="searchCip"
+            placeholder="Rechercher un produit par CIP..."
+            class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent shadow-sm placeholder-gray-400 transition duration-150 ease-in-out"
+          />
+          <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <button
+              v-if="searchCip"
+              @click="searchCip = ''"
+              class="text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
+            </button>
+          </div>
+          <div 
+            v-if="searchCip && filteredProducts.length === 0" 
+            class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border border-gray-200 py-2 px-3 text-sm text-gray-500"
           >
-            <option value="">Toutes catégories</option>
-            <option v-for="category in categories" :key="category" :value="category">
-              {{ category }}
-            </option>
-          </select>
-
-          <select 
-            v-model="sortBy"
-            class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value="title">Nom</option>
-            <option value="brand">Marque</option>
-            <option value="category">Catégorie</option>
-          </select>
-
-          <select 
-            v-model="sortOrder"
-            class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-          >
-            <option value="asc">Croissant</option>
-            <option value="desc">Décroissant</option>
-          </select>
+            Aucun produit trouvé avec ce CIP
+          </div>
         </div>
       </div>
 
@@ -53,7 +55,7 @@
 
       <!-- Grid des produits -->
       <div v-else class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-        <div v-for="product in productsStore.products" :key="product.id" class="group relative">
+        <div v-for="product in filteredProducts" :key="product.cip_code" class="group relative">
           <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
             <img 
               :src="product.image_url || 'placeholder-product.png'" 
@@ -75,7 +77,7 @@
           </div>
           <div class="mt-2">
             <p class="text-xs text-gray-500">
-              {{ product.category }} > {{ product.sub_category1 }} > {{ product.sub_category2 }}
+              {{ product.categorie }} > {{ product.sous_categorie_1 }} > {{ product.sous_categorie_2 }}
             </p>
           </div>
           <div class="mt-4 flex items-center justify-between">
@@ -144,6 +146,8 @@
 import { useProductsStore } from '~/stores/products'
 import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
+import { httpsCallable } from 'firebase/functions'
+import type { Product } from '~/types/product'
 
 const productsStore = useProductsStore()
 const cartStore = useCartStore()
@@ -151,17 +155,12 @@ const toast = useToast()
 
 const currentPage = ref(1)
 const limit = ref(12)
-const sortBy = ref('title')
-const sortOrder = ref('asc')
-const filters = ref({
-  category: '',
-  subCategory1: '',
-  subCategory2: '',
-  brand: ''
-})
-
-const categories = computed(() => {
-  return [...new Set(productsStore.products.map(p => p.category))].sort()
+const searchCip = ref('')
+const filteredProducts = computed(() => {
+  if (!searchCip.value) return productsStore.products
+  return productsStore.products.filter(product => 
+    product.cip_code.toLowerCase().includes(searchCip.value.toLowerCase())
+  )
 })
 
 const displayedPages = computed(() => {
@@ -198,10 +197,7 @@ const fetchProducts = async () => {
   try {
     await productsStore.fetchProducts({
       page: currentPage.value,
-      limit: limit.value,
-      sortBy: sortBy.value,
-      sortOrder: sortOrder.value,
-      ...filters.value
+      limit: limit.value
     })
   } catch (error) {
     console.error('Erreur lors du chargement des produits:', error)
@@ -224,7 +220,7 @@ const addToCart = (product: any) => {
   }
 }
 
-watch([currentPage, limit, sortBy, sortOrder, filters], () => {
+watch([currentPage, limit, searchCip], () => {
   fetchProducts()
 })
 

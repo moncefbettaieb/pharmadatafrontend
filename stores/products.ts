@@ -1,17 +1,6 @@
 import { defineStore } from 'pinia'
 import { httpsCallable } from 'firebase/functions'
-
-interface Product {
-  id: string
-  cip_code: string
-  brand: string
-  title: string
-  category: string
-  sub_category1: string
-  sub_category2: string
-  short_desc: string
-  image_url?: string
-}
+import type { Product } from '~/types/product'
 
 interface Pagination {
   total: number
@@ -33,9 +22,9 @@ interface FetchProductsParams {
   limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
-  category?: string
-  subCategory1?: string
-  subCategory2?: string
+  categorie?: string
+  sous_categorie_1?: string
+  sous_categorie_2?: string
   brand?: string
 }
 
@@ -75,7 +64,6 @@ export const useProductsStore = defineStore('products', {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
         this.error = errorMessage
-        // Log l'erreur avec un message plus descriptif
         if (error instanceof Error) {
           console.error(`Erreur lors du chargement des produits: ${error.message}`, {
             error,
@@ -93,7 +81,7 @@ export const useProductsStore = defineStore('products', {
       }
     },
 
-    async getProductByCip(cip_code: string) {
+    async getProductByCip(cipCode: string): Promise<Partial<Product>> {
       this.loading = true
       this.error = null
 
@@ -104,26 +92,30 @@ export const useProductsStore = defineStore('products', {
         }
 
         const getProductCall = httpsCallable($functions, 'getProductByCip')
-        const result = await getProductCall({ cip_code })
+        const result = await getProductCall({ cipCode })
 
         if (!result.data || typeof result.data !== 'object') {
           throw new Error('Réponse invalide du serveur')
         }
 
-        return result.data as Product
+        const product = result.data as Product
+        
+        // Filtrer les champs non-nuls
+        return Object.fromEntries(
+          Object.entries(product).filter(([_, value]) => value !== null && value !== undefined)
+        ) as Partial<Product>
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
         this.error = errorMessage
-        // Log l'erreur avec un message plus descriptif
         if (error instanceof Error) {
-          console.error(`Erreur lors de la récupération du produit ${cip_code}: ${error.message}`, {
+          console.error(`Erreur lors de la récupération du produit ${cipCode}: ${error.message}`, {
             error,
-            cip_code
+            cipCode
           })
         } else {
-          console.error(`Erreur inconnue lors de la récupération du produit ${cip_code}:`, {
+          console.error(`Erreur inconnue lors de la récupération du produit ${cipCode}:`, {
             error,
-            cip_code
+            cipCode
           })
         }
         throw error
