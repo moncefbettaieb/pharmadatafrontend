@@ -95,11 +95,11 @@
 
 <script setup lang="ts">
 import { useCartStore } from '~/stores/cart'
-import { usePaymentStore } from '~/stores/paymentCart'
+import { usePaymentCartStore } from '~/stores/paymentCart'
 import { useToast } from 'vue-toastification'
 
 const cartStore = useCartStore()
-const paymentStore = usePaymentStore()
+const paymentStore = usePaymentCartStore()
 const toast = useToast()
 
 const removeFromCart = (productId: string): void => {

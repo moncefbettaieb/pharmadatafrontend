@@ -12,7 +12,7 @@ interface CartItem {
 
 type FileFormat = 'json' | 'pdf'
 
-export const usePaymentStore = defineStore('paymentCart', {
+export const usePaymentCartStore = defineStore('paymentCart', {
   state: () => ({
     loading: false,
     error: null as string | null,
