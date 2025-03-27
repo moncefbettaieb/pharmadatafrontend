@@ -5,3 +5,5 @@ package-lock.json
 .env*
 .vscode/*
 firebase-debug.log
+.vscode/*
+.DS_Store

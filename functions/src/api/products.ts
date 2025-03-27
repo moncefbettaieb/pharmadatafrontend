@@ -135,13 +135,13 @@ export const getProducts = onCall({
     } = request.data || {} as PaginationParams
 
     // Get total count of active products
-    const countSnapshot = await db.collection('final_pharma_table')
+    const countSnapshot = await db.collection('pharma_products')
       .count()
       .get()
     const total = countSnapshot.data().count
 
     // Get paginated products
-    const productsSnapshot = await db.collection('final_pharma_table')
+    const productsSnapshot = await db.collection('pharma_products')
       .orderBy(sortBy, sortOrder)
       .offset((page - 1) * limit)
       .limit(limit)
@@ -209,7 +209,7 @@ export const getProductByCip = onRequest({
 
   try {
     const db = admin.firestore()
-    const productDoc = await db.collection('final_pharma_table')
+    const productDoc = await db.collection('pharma_products')
       .where('cip_code', '==', cip_code)
       .limit(1)
       .get()

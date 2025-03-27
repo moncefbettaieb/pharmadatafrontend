@@ -54,7 +54,7 @@ jobs:
           --image europe-west9-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/pharmadatafrontend:$GITHUB_SHA \
           --platform managed \
           --region europe-west9 \
-          --set-env-vars ENVIRONMENT=staging \
+          --set-env-vars APP_ENV=staging \
           --set-env-vars API_BASE_URL=${{ secrets.API_BASE_URL }} \
           --set-env-vars FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
           --set-env-vars FIREBASE_AUTH_DOMAIN=${{ secrets.FIREBASE_AUTH_DOMAIN }} \
