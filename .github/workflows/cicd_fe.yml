@@ -1,0 +1,178 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - develop
+  release:
+    types: [created]
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REGION: europe-west9
+
+jobs:
+  build-dev:
+    environment: dev
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up GCloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Docker auth
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/dev:latest \
+          --build-arg FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+          --build-arg FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }} \
+          --build-arg FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }} \
+          --build-arg FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
+          --build-arg FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+          --build-arg FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+          --build-arg FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
+          --build-arg STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+          --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} .
+
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/dev:latest
+
+      - name: Deploy to Cloud Run (dev)
+        run: |
+          gcloud run deploy pharmadata-frontend-dev \
+            --image ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/dev:latest \
+            --platform managed \
+            --region ${{ env.GCP_REGION }} \
+            --set-env-vars APP_ENV=dev \
+            --set-env-vars FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+            --set-env-vars FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }} \
+            --set-env-vars FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }} \
+            --set-env-vars FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
+            --set-env-vars FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+            --set-env-vars FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+            --set-env-vars FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
+            --set-env-vars STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+            --set-env-vars STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            --allow-unauthenticated
+
+  deploy-staging:
+    environment: staging
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' || github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up GCloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Docker auth
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/staging:latest \
+          --build-arg FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+          --build-arg FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }} \
+          --build-arg FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }} \
+          --build-arg FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
+          --build-arg FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+          --build-arg FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+          --build-arg FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
+          --build-arg STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+          --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} .
+
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/staging:latest
+
+      - name: Deploy to Cloud Run (staging)
+        run: |
+          gcloud run deploy pharmadata-frontend-staging \
+            --image ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/staging:latest \
+            --platform managed \
+            --region ${{ env.GCP_REGION }} \
+            --set-env-vars APP_ENV=staging \
+            --set-env-vars FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+            --set-env-vars FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }} \
+            --set-env-vars FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }} \
+            --set-env-vars FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
+            --set-env-vars FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+            --set-env-vars FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+            --set-env-vars FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
+            --set-env-vars STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+            --set-env-vars STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            --allow-unauthenticated
+
+  deploy-prod:
+    environment: prod
+    if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up GCloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Docker auth
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/prod:latest \
+          --build-arg FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+          --build-arg FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }} \
+          --build-arg FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }} \
+          --build-arg FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
+          --build-arg FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+          --build-arg FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+          --build-arg FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
+          --build-arg STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+          --build-arg STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} .
+
+          docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/prod:latest
+
+      - name: Deploy to Cloud Run (prod)
+        run: |
+          gcloud run deploy pharmadata-frontend-prod \
+            --image ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/cloud-run-source-deploy/pharmadatafrontend/prod:latest \
+            --platform managed \
+            --region ${{ env.GCP_REGION }} \
+            --set-env-vars APP_ENV=production \
+            --set-env-vars FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }} \
+            --set-env-vars FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }} \
+            --set-env-vars FIREBASE_PROJECT_ID=${{ env.GCP_PROJECT_ID }} \
+            --set-env-vars FIREBASE_STORAGE_BUCKET=${{ vars.FIREBASE_STORAGE_BUCKET }} \
+            --set-env-vars FIREBASE_MESSAGING_SENDER_ID=${{ secrets.FIREBASE_MESSAGING_SENDER_ID }} \
+            --set-env-vars FIREBASE_APP_ID=${{ secrets.FIREBASE_APP_ID }} \
+            --set-env-vars FIREBASE_MEASUREMENT_ID=${{ secrets.FIREBASE_MEASUREMENT_ID }} \
+            --set-env-vars STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+            --set-env-vars STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            --allow-unauthenticated
