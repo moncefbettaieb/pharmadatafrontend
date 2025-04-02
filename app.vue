@@ -1,10 +1,13 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <TheHeader />
+<div class="min-h-screen bg-gray-50">
+  <TheHeader />
+  <!-- Ajout d'un padding-top pour compenser le header fixe -->
+  <div class="pt-16">
     <NuxtPage />
-    <TheFooter />
-    <div id="toast-container"></div>
   </div>
+  <TheFooter />
+  <div id="toast-container"></div>
+</div>
 </template>
 
 <script setup>
