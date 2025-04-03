@@ -7,128 +7,308 @@
           Plans d'accès à l'API
         </p>
         <p class="mt-6 text-lg leading-8 text-gray-600">
-          Choisissez le plan qui correspond à vos besoins. Tous les prix sont en euros et par mois.
+          Choisissez le plan qui correspond à vos besoins.
         </p>
-      </div>
 
-      <div class="isolate mx-auto mt-16 grid max-w-md grid-cols-1 gap-y-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-4">
-        <div
-          v-for="plan in plansStore.plans"
-          :key="plan.id"
-          class="flex flex-col justify-between rounded-3xl bg-white p-8 ring-1 ring-gray-200 xl:p-10"
-          :class="{
-            'lg:z-10 lg:rounded-b-none': plan.id === 'pro',
-            'lg:mt-0': plan.id !== 'pro'
-          }"
-        >
-          <div>
-            <div class="flex items-center justify-between gap-x-4">
-              <h2 class="text-lg font-semibold leading-8 text-gray-900">
-                {{ plan.name }}
-              </h2>
-            </div>
-            <p class="mt-4 text-sm leading-6 text-gray-600">
-              {{ plan.requestsPerMonth.toLocaleString() }} requêtes par mois
-            </p>
-            <p class="mt-6 flex items-baseline gap-x-1">
-              <span class="text-4xl font-bold tracking-tight text-gray-900">{{ plan.price }}€</span>
-              <span class="text-sm font-semibold leading-6 text-gray-600">/mois</span>
-            </p>
-            <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-gray-600">
-              <li v-for="feature in plan.features" :key="feature" class="flex gap-x-3">
-                <svg class="h-6 w-5 flex-none text-indigo-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
-                </svg>
-                {{ feature }}
-              </li>
-            </ul>
-          </div>
+        <!-- Toggle annuel/mensuel -->
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-x-4">
+          <span class="text-sm font-semibold" :class="isAnnual ? 'text-gray-500' : 'text-gray-900'">Mensuel</span>
           <button
-            @click="selectPlan(plan)"
-            :disabled="loading"
-            class="mt-8 block rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="toggleBillingPeriod"
+            type="button"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+            :class="isAnnual ? 'bg-indigo-600' : 'bg-gray-200'"
+            role="switch"
+            :aria-checked="isAnnual"
           >
-            <span v-if="loading">Chargement...</span>
-            <span v-else>Sélectionner ce plan</span>
+            <span
+              aria-hidden="true"
+              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+              :class="isAnnual ? 'translate-x-5' : 'translate-x-0'"
+            />
           </button>
+          <span class="text-sm font-semibold" :class="isAnnual ? 'text-gray-900' : 'text-gray-500'">
+            Annuel (2 mois offerts)
+          </span>
+        </div>
+      </div>
+  
+      <div class="isolate mx-auto mt-16 grid grid-cols-1 gap-y-8 gap-x-6 sm:mt-20 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <!-- Plan Gratuit -->
+        <div class="rounded-3xl p-8 ring-1 ring-gray-200 bg-white">
+          <h3 class="text-lg font-semibold leading-8 text-gray-900">Gratuit</h3>
+          <p class="mt-4 text-sm leading-6 text-gray-600">
+            100 requêtes par mois
+          </p>
+          <p class="mt-6 flex items-baseline gap-x-1">
+            <span class="text-4xl font-bold tracking-tight text-gray-900">0€</span>
+            <span class="text-sm font-semibold leading-6 text-gray-600">/mois</span>
+          </p>
+          <button
+            @click="selectPlan(plansStore.plans[0])"
+            :disabled="loading"
+            class="mt-6 block w-full rounded-md bg-gray-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-gray-500"
+          >
+            Commencer gratuitement
+          </button>
+          <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-gray-600">
+            <li v-for="feature in plansStore.plans[0].features" :key="feature" class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-gray-600" aria-hidden="true" />
+              {{ feature }}
+            </li>
+          </ul>
+        </div>
+  
+        <!-- Plan Basic -->
+        <div class="rounded-3xl p-8 ring-1 ring-gray-200 bg-blue-50">
+          <h3 class="text-lg font-semibold leading-8 text-blue-900">Basic</h3>
+          <p class="mt-4 text-sm leading-6 text-blue-600">
+            1 000 requêtes par mois
+          </p>
+          <p class="mt-6 flex items-baseline gap-x-1">
+            <span class="text-4xl font-bold tracking-tight text-blue-900">
+              {{ isAnnual ? '299.90€' : '29.99€' }}
+            </span>
+            <span class="text-sm font-semibold leading-6 text-blue-600">
+              /{{ isAnnual ? 'an' : 'mois' }}
+            </span>
+          </p>
+          <button
+            @click="selectPlan(plansStore.plans[1])"
+            :disabled="loading"
+            class="mt-6 block w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-blue-500"
+          >
+            Sélectionner
+          </button>
+          <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-blue-600">
+            <li v-for="feature in plansStore.plans[1].features" :key="feature" class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-blue-600" aria-hidden="true" />
+              {{ feature }}
+            </li>
+          </ul>
+        </div>
+  
+        <!-- Plan Pro (Popular) -->
+        <div class="rounded-3xl p-8 ring-2 ring-indigo-600 bg-indigo-50 lg:z-10 lg:rounded-b-none relative">
+          <div class="absolute -top-4 left-0 right-0 flex justify-center">
+            <span class="rounded-full bg-indigo-600 px-4 py-1 text-xs font-semibold leading-5 text-white">Le plus populaire</span>
+          </div>
+          <h3 class="text-lg font-semibold leading-8 text-indigo-900">Pro</h3>
+          <p class="mt-4 text-sm leading-6 text-indigo-600">
+            5 000 requêtes par mois
+          </p>
+          <p class="mt-6 flex items-baseline gap-x-1">
+            <span class="text-4xl font-bold tracking-tight text-indigo-900">
+              {{ isAnnual ? '799.90€' : '79.99€' }}
+            </span>
+            <span class="text-sm font-semibold leading-6 text-indigo-600">
+              /{{ isAnnual ? 'an' : 'mois' }}
+            </span>
+          </p>
+          <button
+            @click="selectPlan(plansStore.plans[2])"
+            :disabled="loading"
+            class="mt-6 block w-full rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Sélectionner
+          </button>
+          <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-indigo-600">
+            <li v-for="feature in plansStore.plans[2].features" :key="feature" class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+              {{ feature }}
+            </li>
+          </ul>
+        </div>
+  
+        <!-- Plan Enterprise -->
+        <div class="rounded-3xl p-8 ring-1 ring-gray-200 bg-purple-50">
+          <h3 class="text-lg font-semibold leading-8 text-purple-900">Enterprise</h3>
+          <p class="mt-4 text-sm leading-6 text-purple-600">
+            20 000 requêtes par mois
+          </p>
+          <p class="mt-6 flex items-baseline gap-x-1">
+            <span class="text-4xl font-bold tracking-tight text-purple-900">
+              {{ isAnnual ? '1999.90€' : '199.99€' }}
+            </span>
+            <span class="text-sm font-semibold leading-6 text-purple-600">
+              /{{ isAnnual ? 'an' : 'mois' }}
+            </span>
+          </p>
+          <button
+            @click="selectPlan(plansStore.plans[3])"
+            :disabled="loading"
+            class="mt-6 block w-full rounded-md bg-purple-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-purple-500"
+          >
+            Sélectionner
+          </button>
+          <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-purple-600">
+            <li v-for="feature in plansStore.plans[3].features" :key="feature" class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-purple-600" aria-hidden="true" />
+              {{ feature }}
+            </li>
+          </ul>
+        </div>
+  
+        <!-- Plan Lifetime -->
+        <div class="rounded-3xl p-8 ring-1 ring-gray-200 bg-gradient-to-br from-green-50 to-emerald-50">
+          <h3 class="text-lg font-semibold leading-8 text-emerald-900">Lifetime</h3>
+          <p class="mt-4 text-sm leading-6 text-emerald-600">
+            Accès illimité à vie
+          </p>
+          <p class="mt-6 flex items-baseline gap-x-1">
+            <span class="text-4xl font-bold tracking-tight text-emerald-900">4999€</span>
+            <span class="text-sm font-semibold leading-6 text-emerald-600">une fois</span>
+          </p>
+          <button
+            @click="selectLifetimePlan"
+            :disabled="loading"
+            class="mt-6 block w-full rounded-md bg-gradient-to-r from-emerald-600 to-green-600 px-3 py-2 text-center text-sm font-semibold text-white hover:from-emerald-500 hover:to-green-500"
+          >
+            Accès à vie
+          </button>
+          <ul role="list" class="mt-8 space-y-3 text-sm leading-6 text-emerald-600">
+            <li class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-emerald-600" aria-hidden="true" />
+              Requêtes illimitées
+            </li>
+            <li class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-emerald-600" aria-hidden="true" />
+              Support prioritaire à vie
+            </li>
+            <li class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-emerald-600" aria-hidden="true" />
+              Accès aux futures fonctionnalités
+            </li>
+            <li class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-emerald-600" aria-hidden="true" />
+              API personnalisée
+            </li>
+            <li class="flex gap-x-3">
+              <CheckIcon class="h-6 w-5 flex-none text-emerald-600" aria-hidden="true" />
+              SLA garanti
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
-</template>
-
-<script setup>
-import { useAuthStore } from '~/stores/auth'
-import { usePlansStore } from '~/stores/plans'
-import { useToast } from 'vue-toastification/dist/index.mjs'
-import { loadStripe } from '@stripe/stripe-js'
-import { httpsCallable } from 'firebase/functions'
-import { storeToRefs } from 'pinia'
-
-const authStore = useAuthStore()
-const plansStore = usePlansStore()
-const { user } = storeToRefs(authStore)
-const toast = useToast()
-const config = useRuntimeConfig()
-const loading = ref(false)
-const { $functions } = useNuxtApp()
-const router = useRouter()
-
-const selectPlan = async (plan) => {
-  if (!user.value) {
-    // Rediriger vers la page de connexion
-    router.push('/login')
-    return
+  </template>
+  
+  <script setup>
+  import { ref } from 'vue'
+  import { useAuthStore } from '~/stores/auth'
+  import { usePlansStore } from '~/stores/plans'
+  import { useToast } from 'vue-toastification'
+  import { loadStripe } from '@stripe/stripe-js'
+  import { httpsCallable } from 'firebase/functions'
+  import { CheckIcon } from '@heroicons/vue/24/solid'
+  import { storeToRefs } from 'pinia'
+  
+  const authStore = useAuthStore()
+  const plansStore = usePlansStore()
+  const { user } = storeToRefs(authStore)
+  const toast = useToast()
+  const config = useRuntimeConfig()
+  const loading = ref(false)
+  const { $functions } = useNuxtApp()
+  const router = useRouter()
+  const isAnnual = ref(false)
+  
+  const toggleBillingPeriod = () => {
+    isAnnual.value = !isAnnual.value
   }
-
-  loading.value = true
-  // Si c'est le plan gratuit, rediriger vers la page des tokens API
-  if (plan.id === 'free') {
-    router.push('/account/api-tokens')
-    return
+  
+  const selectPlan = async (plan) => {
+    if (!user.value) {
+      router.push('/login')
+      return
+    }
+  
+    loading.value = true
+    if (plan.id === 'free') {
+      router.push('/account/api-tokens')
+      return
+    }
+  
+    try {
+      if (!$functions) {
+        throw new Error('Firebase Functions non initialisé')
+      }
+  
+      if (!config.public.stripePublicKey) {
+        console.error('Clé publique Stripe manquante dans la configuration')
+        throw new Error('Configuration Stripe manquante')
+      }
+  
+      const stripe = await loadStripe(config.public.stripePublicKey)
+      if (!stripe) {
+        throw new Error('Erreur lors du chargement de Stripe')
+      }
+  
+      const createSubscriptionCall = httpsCallable($functions, 'createSubscription')
+      
+      const result = await createSubscriptionCall({
+        priceId: plan.id,
+        requestsLimit: plan.requestsPerMonth,
+        isAnnual: isAnnual.value,
+        successUrl: `${window.location.origin}/payment/success`,
+        cancelUrl: `${window.location.origin}/payment/cancel`
+      })
+  
+      const { sessionId } = result.data
+      if (!sessionId) {
+        throw new Error('Session ID manquant dans la réponse')
+      }
+  
+      const { error } = await stripe.redirectToCheckout({ sessionId })
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      console.error('Erreur complète:', error)
+      toast.error(error.message || "Une erreur s'est produite lors de la redirection vers le paiement")
+    } finally {
+      loading.value = false
+    }
   }
-  try {
-    if (!$functions) {
-      throw new Error('Firebase Functions non initialisé')
+  
+  const selectLifetimePlan = async () => {
+    if (!user.value) {
+      router.push('/login')
+      return
     }
-
-    console.log('Clé publique Stripe:', config.public.stripePublicKey)
-    if (!config.public.stripePublicKey) {
-      console.error('Clé publique Stripe manquante dans la configuration')
-      throw new Error('Configuration Stripe manquante')
+  
+    loading.value = true
+    try {
+      if (!$functions) {
+        throw new Error('Firebase Functions non initialisé')
+      }
+  
+      const stripe = await loadStripe(config.public.stripePublicKey)
+      if (!stripe) {
+        throw new Error('Erreur lors du chargement de Stripe')
+      }
+  
+      const createLifetimeSessionCall = httpsCallable($functions, 'createLifetimeSession')
+      const result = await createLifetimeSessionCall({
+        successUrl: `${window.location.origin}/payment/success`,
+        cancelUrl: `${window.location.origin}/payment/cancel`
+      })
+  
+      const { sessionId } = result.data
+      if (!sessionId) {
+        throw new Error('Session ID manquant dans la réponse')
+      }
+  
+      const { error } = await stripe.redirectToCheckout({ sessionId })
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'achat du plan lifetime:', error)
+      toast.error(error.message || "Une erreur s'est produite lors de la redirection vers le paiement")
+    } finally {
+      loading.value = false
     }
-
-    // Initialiser Stripe
-    const stripe = await loadStripe(config.public.stripePublicKey)
-    if (!stripe) {
-      throw new Error('Erreur lors du chargement de Stripe')
-    }
-
-    // Appeler la Cloud Function
-    const createSubscriptionCall = httpsCallable($functions, 'createSubscription')
-    
-    const result = await createSubscriptionCall({
-      priceId: plan.id,
-      requestsLimit: plan.requestsPerMonth,
-      successUrl: `${window.location.origin}/payment/success`,
-      cancelUrl: `${window.location.origin}/payment/cancel`
-    })
-
-    const { sessionId } = result.data
-    if (!sessionId) {
-      throw new Error('Session ID manquant dans la réponse')
-    }
-
-    // Rediriger vers Stripe Checkout
-    const { error } = await stripe.redirectToCheckout({ sessionId })
-    if (error) {
-      throw error
-    }
-  } catch (error) {
-    console.error('Erreur complète:', error)
-    toast.error(error.message || "Une erreur s'est produite lors de la redirection vers le paiement")
-  } finally {
-    loading.value = false
   }
-}
-</script>
+  </script>
