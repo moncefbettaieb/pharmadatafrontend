@@ -51,7 +51,7 @@
           <NuxtLink
             to="/products"
             class="text-base font-medium text-gray-500 hover:text-gray-900"
-          >Produits</NuxtLink>
+          >Fiches Produits</NuxtLink>
           <NuxtLink
             to="/api-plans"
             class="text-base font-medium text-gray-500 hover:text-gray-900"
