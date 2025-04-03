@@ -122,6 +122,36 @@ export const useProductsStore = defineStore('products', {
       } finally {
         this.loading = false
       }
+    },
+
+    async getProductById(id: string): Promise<Product> {
+      this.loading = true
+      this.error = null
+
+      try {
+        // Rechercher d'abord dans les produits déjà chargés
+        const existingProduct = this.products.find(p => p.id === id)
+        if (existingProduct) {
+          return existingProduct
+        }
+
+        // Si le produit n'est pas trouvé dans le store, charger tous les produits
+        if (this.products.length === 0) {
+          await this.fetchProducts()
+          const product = this.products.find(p => p.id === id)
+          if (product) {
+            return product
+          }
+        }
+
+        throw new Error('Produit non trouvé')
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
+        this.error = errorMessage
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })
