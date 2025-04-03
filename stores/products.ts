@@ -65,12 +65,12 @@ export const useProductsStore = defineStore('products', {
         const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
         this.error = errorMessage
         if (error instanceof Error) {
-          console.error(`Erreur lors du chargement des produits: ${error.message}`, {
+          console.error(`Erreur lors du chargement des fiches produits: ${error.message}`, {
             error,
             params
           })
         } else {
-          console.error('Erreur inconnue lors du chargement des produits:', {
+          console.error('Erreur inconnue lors du chargement des fiches produits:', {
             error,
             params
           })
