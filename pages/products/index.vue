@@ -63,7 +63,7 @@
           <!-- Image -->
           <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200">
             <img
-              :src="product.image_url || 'placeholder-product.png'"
+              :src="product.image_url || 'images/placeholder-product.png'"
               :alt="product.title"
               class="h-full w-full object-cover object-center"
             />
