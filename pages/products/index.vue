@@ -1,9 +1,9 @@
 <template>
   <div class="bg-white">
     <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">Nos Fiches Produits</h1>
-        
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">Nos Fiches Produits</h1>
+
         <!-- Recherche par CIP -->
         <div class="relative w-full sm:w-96">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -15,7 +15,7 @@
             type="text"
             v-model="searchCip"
             placeholder="Rechercher un produit par CIP..."
-            class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent shadow-sm placeholder-gray-400 transition duration-150 ease-in-out"
+            class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent shadow-sm placeholder-gray-400 transition duration-150 ease-in-out text-sm sm:text-base"
           />
           <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
             <button
@@ -54,46 +54,47 @@
       </div>
 
       <!-- Grid des produits -->
-      <div v-else class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-        <div v-for="product in filteredProducts" :key="product.cip_code" class="group relative">
-          <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
-            <img 
-              :src="product.image_url || 'placeholder-product.png'" 
+      <div v-else class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div
+          v-for="product in filteredProducts"
+          :key="product.cip_code"
+          class="group flex flex-col justify-between border rounded-md p-4 bg-white shadow-sm h-full min-h-[450px]"
+        >
+          <!-- Image -->
+          <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-md bg-gray-200">
+            <img
+              :src="product.image_url || 'placeholder-product.png'"
               :alt="product.title"
-              class="h-full w-full object-cover object-center lg:h-full lg:w-full"
-            >
+              class="h-full w-full object-cover object-center"
+            />
           </div>
-          <div class="mt-4">
+
+          <!-- Infos produit -->
+          <div class="mt-4 flex-1 flex flex-col">
             <div>
-              <h3 class="text-sm text-gray-700">
-                {{ product.title }}
-              </h3>
+              <h3 class="text-sm font-medium text-gray-700">{{ product.title }}</h3>
               <p class="mt-1 text-sm text-gray-500">{{ product.brand }}</p>
               <p class="mt-1 text-xs text-gray-400">CIP: {{ product.cip_code }}</p>
             </div>
-          </div>
-          <div class="mt-2">
-            <p class="text-sm text-gray-600 line-clamp-2">{{ product.short_desc }}</p>
-          </div>
-          <div class="mt-2">
-            <p class="text-xs text-gray-500">
-              {{ product.categorie }} > {{ product.sous_categorie_1 }} > {{ product.sous_categorie_2 }}
-            </p>
-          </div>
-          <div class="mt-4 flex items-center justify-between">
-            <p class="text-sm font-medium text-gray-900">0.70€</p>
-            <button
-              @click="addToCart(product)"
-              class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-              :disabled="isInCart(product.id)"
-            >
-              {{ isInCart(product.id) ? 'Déjà dans le panier' : 'Ajouter au panier' }}
-            </button>
+            <p class="mt-2 text-sm text-gray-600 line-clamp-2">{{ product.short_desc }}</p>
+            <p class="mt-2 text-xs text-gray-500">{{ product.categorie }} > {{ product.sous_categorie_1 }} > {{ product.sous_categorie_2 }}</p>
+
+            <!-- Prix + Bouton -->
+            <div class="mt-auto pt-4 flex items-center justify-between">
+              <p class="text-sm font-medium text-gray-900">0.70€</p>
+              <button
+                @click="addToCart(product)"
+                class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                :disabled="isInCart(product.id)"
+              >
+                {{ isInCart(product.id) ? 'Déjà dans le panier' : 'Ajouter au panier' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Pagination -->
+      <!-- Pagination (inchangée) -->
       <div v-if="productsStore.pagination" class="mt-8 flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6">
         <div class="flex flex-1 justify-between sm:hidden">
           <button
@@ -141,6 +142,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { useProductsStore } from '~/stores/products'
