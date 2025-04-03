@@ -94,7 +94,7 @@
                 to="/products"
                 class="text-indigo-600 hover:text-indigo-500"
               >
-                Retour aux produits
+                Retour aux fiches produits
               </NuxtLink>
             </div>
           </div>
