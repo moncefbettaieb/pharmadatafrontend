@@ -40,7 +40,7 @@
       <!-- Loading et Error states -->
       <div v-if="productsStore.loading" class="mt-6 text-center">
         <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
-        <p class="mt-2 text-gray-500">Chargement des produits...</p>
+        <p class="mt-2 text-gray-500">Chargement des fiches...</p>
       </div>
 
       <div v-else-if="productsStore.error" class="mt-6 text-center">
@@ -202,8 +202,8 @@ const fetchProducts = async () => {
       limit: limit.value
     })
   } catch (error) {
-    console.error('Erreur lors du chargement des produits:', error)
-    toast.error("Une erreur s'est produite lors du chargement des produits")
+    console.error('Erreur lors du chargement des fiches produits:', error)
+    toast.error("Une erreur s'est produite lors du chargement des fiches produits")
   }
 }
 
