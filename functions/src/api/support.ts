@@ -69,22 +69,11 @@ export const sendSupportEmail = onCall({
         }
       }
 
-      console.log('Configuration SMTP:', {
-        host: smtpConfig.host,
-        port: smtpConfig.port,
-        secure: smtpConfig.secure,
-        user: smtpConfig.auth.user,
-        // Ne pas logger le mot de passe pour des raisons de sécurité
-      })
-
     // Créer le transporteur SMTP
     const transporter = nodemailer.createTransport(smtpConfig)
-    console.log('Transporter créé:', transporter)
 
-    // Vérifier la connexion SMTP
     try {
       await transporter.verify()
-      console.log('Connexion SMTP vérifiée avec succès')
     } catch (error) {
       console.error('Erreur de vérification SMTP:', error)
       throw new Error('Erreur de connexion au serveur SMTP')
@@ -118,12 +107,6 @@ export const sendSupportEmail = onCall({
       }
     }
 
-    console.log('Envoi de l\'email avec les options:', {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject
-    })
-
     await transporter.sendMail(mailOptions)
     console.log('Email envoyé avec succès')
 
@@ -144,5 +127,68 @@ export const sendSupportEmail = onCall({
   } catch (error) {
     console.error('Erreur lors de l\'envoi de l\'email au support:', error)
     throw new HttpsError('internal', 'Erreur lors de l\'envoi de l\'email au support')
+  }
+})
+
+export const sendContactEmail = onCall({
+  region: 'europe-west9',
+  maxInstances: 10
+}, async (request) => {
+
+  const { subject, message, sessionId } = request.data
+  if (!subject || !message || !sessionId) {
+    throw new HttpsError('invalid-argument', 'Sujet, message et ID de session requis')
+  }
+
+  const smtpHost = SMTP_HOST.value() || 'smtp.gmail.com'
+  const smtpPort = SMTP_PORT.value() || '587'
+  const smtpSecure = SMTP_SECURE.value()|| false
+  const smtpUser = SMTP_USER.value()
+  const smtpPass = SMTP_PASS.value()
+
+  try {
+
+    const smtpConfig = {
+        host: smtpHost,
+        port: parseInt(smtpPort, 10),
+        secure: smtpSecure,
+        auth: {
+            user: smtpUser,
+            pass: smtpPass,
+        },
+        tls: {
+          rejectUnauthorized: false
+        }
+      }
+
+    const transporter = nodemailer.createTransport(smtpConfig)
+
+    try {
+      await transporter.verify()
+    } catch (error) {
+      console.error('Erreur de vérification SMTP:', error)
+      throw new Error('Erreur de connexion au serveur SMTP')
+    }
+
+    const mailOptions = {
+      from: sessionId,
+      to: smtpUser,
+      subject: `[Contact] ${subject}`,
+      text: message,
+      headers: {
+        'X-Session-ID': sessionId
+      }
+    }
+
+    await transporter.sendMail(mailOptions)
+    console.log('Email envoyé avec succès')
+
+    return {
+      success: true,
+      sessionId: sessionId
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email:', error)
+    throw new HttpsError('internal', 'Erreur lors de l\'envoi de l\'email')
   }
 })
