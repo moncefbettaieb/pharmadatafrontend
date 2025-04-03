@@ -7,7 +7,7 @@ import { createProductPaymentSession} from './api/product-payment'
 import { createSubscription} from './api/subscription-payment'
 import { handleStripeWebhook} from './api/webhook'
 import { getProductFiles } from './api/product-files'
-import { sendSupportEmail } from './api/support'
+import { sendSupportEmail, sendContactEmail } from './api/support'
 import { rateLimit } from './utils/rate-limit'
 import { 
   getNotifications, 
@@ -55,5 +55,6 @@ export {
   createSubscription,
   getProductFiles,
   sendSupportEmail,
+  sendContactEmail,
   rateLimit
 }
