@@ -6,22 +6,30 @@
       <NuxtPage />
     </div>
     <TheFooter />
-    <div id="toast-container" class="!top-20"></div>
   </div>
 </template>
 
 <script setup>
-import { useToast } from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
-
-const toast = useToast()
-
-// Make toast available globally
-provide('toast', toast)
 </script>
 
 <style>
 .Vue-Toastification__container {
   z-index: 40 !important;
+}
+
+.Vue-Toastification__toast--default {
+  background-color: #4F46E5 !important;
+  border-radius: 0.5rem !important;
+}
+
+.Vue-Toastification__toast--success {
+  background-color: #059669 !important;
+  border-radius: 0.5rem !important;
+}
+
+.Vue-Toastification__toast--error {
+  background-color: #DC2626 !important;
+  border-radius: 0.5rem !important;
 }
 </style>
