@@ -8,7 +8,7 @@
             <span class="text-xl sm:text-2xl font-bold text-indigo-600">PharmaData</span>
           </NuxtLink>
         </div>
-
+  
         <!-- Menu mobile -->
         <div class="flex md:hidden">
           <button
@@ -45,7 +45,7 @@
             </svg>
           </button>
         </div>
-
+  
         <!-- Menu desktop -->
         <div class="hidden md:flex md:items-center md:space-x-6">
           <NuxtLink
@@ -56,11 +56,29 @@
             to="/api-plans"
             class="text-base font-medium text-gray-500 hover:text-gray-900"
           >Plans API</NuxtLink>
-          <NuxtLink
-            to="/cart"
-            class="text-base font-medium text-gray-500 hover:text-gray-900"
-          >Panier</NuxtLink>
           <template v-if="!user">
+            <NuxtLink
+              to="/cart"
+              class="relative group flex items-center"
+            >
+              <span class="sr-only">Panier</span>
+              <svg 
+                class="h-5 w-5 text-gray-500 group-hover:text-gray-900 transition-all duration-200 ease-in-out"
+                :class="{ 'animate-bounce': isCartBouncing }"
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+              <span 
+                v-if="cartStore.totalItems > 0"
+                class="absolute -top-2 -right-2 flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-indigo-600 rounded-full transform transition-transform duration-200 ease-in-out group-hover:scale-110"
+              >
+                {{ cartStore.totalItems }}
+              </span>
+            </NuxtLink>
             <NuxtLink
               to="/login"
               class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
@@ -71,6 +89,28 @@
               to="/account/api-tokens"
               class="text-base font-medium text-gray-500 hover:text-gray-900"
             >Mes Tokens API</NuxtLink>
+            <NuxtLink
+              to="/cart"
+              class="relative group flex items-center"
+            >
+              <span class="sr-only">Panier</span>
+              <svg 
+                class="h-5 w-5 text-gray-500 group-hover:text-gray-900 transition-all duration-200 ease-in-out"
+                :class="{ 'animate-bounce': isCartBouncing }"
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+              </svg>
+              <span 
+                v-if="cartStore.totalItems > 0"
+                class="absolute -top-2 -right-2 flex items-center justify-center h-4 w-4 text-xs font-medium text-white bg-indigo-600 rounded-full transform transition-transform duration-200 ease-in-out group-hover:scale-110"
+              >
+                {{ cartStore.totalItems }}
+              </span>
+            </NuxtLink>
             <button
               @click="handleLogout"
               class="text-base font-medium text-gray-500 hover:text-gray-900"
@@ -78,7 +118,7 @@
           </template>
         </div>
       </div>
-
+  
       <!-- Menu mobile (dropdown) -->
       <div
         v-show="mobileMenuOpen"
@@ -90,7 +130,7 @@
             to="/products"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             @click="mobileMenuOpen = false"
-          >Produits</NuxtLink>
+          >Fiches Produits</NuxtLink>
           <NuxtLink
             to="/api-plans"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
@@ -100,7 +140,12 @@
             to="/cart"
             class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
             @click="mobileMenuOpen = false"
-          >Panier</NuxtLink>
+          >
+            <div class="flex items-center">
+              <span>Panier</span>
+              <span v-if="cartStore.totalItems > 0" class="ml-2 text-sm text-indigo-600">({{ cartStore.totalItems }})</span>
+            </div>
+          </NuxtLink>
           <template v-if="!user">
             <NuxtLink
               to="/login"
@@ -123,23 +168,47 @@
       </div>
     </nav>
   </header>
-</template>
-
-<script setup>
-import { useAuthStore } from '~/stores/auth';
-import { storeToRefs } from 'pinia';
-
-const authStore = useAuthStore();
-const { user } = storeToRefs(authStore);
-const { logout } = authStore;
-const mobileMenuOpen = ref(false);
-
-const handleLogout = async () => {
-  try {
-    await logout();
-    navigateTo('/');
-  } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error);
+  </template>
+  
+  <script setup>
+  import { useAuthStore } from '~/stores/auth'
+  import { useCartStore } from '~/stores/cart'
+  import { storeToRefs } from 'pinia'
+  
+  const authStore = useAuthStore()
+  const cartStore = useCartStore()
+  const { user } = storeToRefs(authStore)
+  const { logout } = authStore
+  const mobileMenuOpen = ref(false)
+  const isCartBouncing = ref(false)
+  
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigateTo('/')
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+    }
   }
-};
-</script>
+  
+  // Watch cart changes to trigger animation
+  watch(() => cartStore.totalItems, (newCount, oldCount) => {
+    if (newCount > oldCount) {
+      isCartBouncing.value = true
+      setTimeout(() => {
+        isCartBouncing.value = false
+      }, 500) // Reduced animation duration to 500ms for subtlety
+    }
+  })
+  </script>
+  
+  <style scoped>
+  .animate-bounce {
+    animation: bounce 0.5s cubic-bezier(0.36, 0, 0.66, -0.56) forwards;
+  }
+  
+  @keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  </style>
