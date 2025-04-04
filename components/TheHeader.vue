@@ -111,10 +111,49 @@
                 {{ cartStore.totalItems }}
               </span>
             </NuxtLink>
-            <button
-              @click="handleLogout"
-              class="text-base font-medium text-gray-500 hover:text-gray-900"
-            >Déconnexion</button>
+            <!-- Profile dropdown -->
+            <div class="relative ml-3">
+              <button
+                @click="profileMenuOpen = !profileMenuOpen"
+                type="button"
+                class="flex rounded-full bg-indigo-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                id="user-menu-button"
+                aria-expanded="false"
+                aria-haspopup="true"
+              >
+                <span class="sr-only">Open user menu</span>
+                <div class="h-8 w-8 rounded-full flex items-center justify-center">
+                  <span class="text-indigo-600 font-medium">{{ userInitials }}</span>
+                </div>
+              </button>
+  
+              <div
+                v-if="profileMenuOpen"
+                class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="user-menu-button"
+                tabindex="-1"
+              >
+                <NuxtLink
+                  to="/profile"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                  @click="profileMenuOpen = false"
+                >
+                  Mon profil
+                </NuxtLink>
+                <button
+                  @click="handleLogout"
+                  class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  Se déconnecter
+                </button>
+              </div>
+            </div>
           </template>
         </div>
       </div>
@@ -159,10 +198,15 @@
               class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
               @click="mobileMenuOpen = false"
             >Mes Tokens API</NuxtLink>
+            <NuxtLink
+              to="/profile"
+              class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+              @click="mobileMenuOpen = false"
+            >Mon profil</NuxtLink>
             <button
               @click="() => { handleLogout(); mobileMenuOpen = false; }"
               class="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-            >Déconnexion</button>
+            >Se déconnecter</button>
           </template>
         </div>
       </div>
@@ -170,7 +214,7 @@
   </header>
   </template>
   
-  <script setup>
+  <script setup lang="ts">
   import { useAuthStore } from '~/stores/auth'
   import { useCartStore } from '~/stores/cart'
   import { storeToRefs } from 'pinia'
@@ -180,11 +224,23 @@
   const { user } = storeToRefs(authStore)
   const { logout } = authStore
   const mobileMenuOpen = ref(false)
+  const profileMenuOpen = ref(false)
   const isCartBouncing = ref(false)
+  
+  const userInitials = computed(() => {
+    const name = user.value?.displayName || ''
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  })
   
   const handleLogout = async () => {
     try {
       await logout()
+      profileMenuOpen.value = false
       navigateTo('/')
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error)
@@ -199,6 +255,16 @@
         isCartBouncing.value = false
       }, 500) // Reduced animation duration to 500ms for subtlety
     }
+  })
+  
+  // Close profile menu when clicking outside
+  onMounted(() => {
+    document.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('#user-menu-button') && profileMenuOpen.value) {
+        profileMenuOpen.value = false
+      }
+    })
   })
   </script>
   
