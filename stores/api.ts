@@ -160,6 +160,16 @@ export const useApiStore = defineStore('api', {
         }
 
         this.history = result.data as TokenHistory[]
+        
+        // Mettre à jour le token actif depuis l'historique
+        const activeToken = this.history.find(t => !t.revokedAt)
+        if (activeToken) {
+          const getTokenCall = httpsCallable($functions, 'getToken')
+          const tokenResult = await getTokenCall({ tokenId: activeToken.id })
+          if (tokenResult.data && tokenResult.data.token) {
+            this.token = tokenResult.data.token
+          }
+        }
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Une erreur est survenue'
         throw error
@@ -169,5 +179,9 @@ export const useApiStore = defineStore('api', {
     }
   },
 
-  persist: true
+  persist: {
+    key: 'api-store',
+    storage: persistedState.localStorage,
+    paths: ['token', 'history']
+  }
 })
