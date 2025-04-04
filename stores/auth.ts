@@ -7,8 +7,11 @@ import {
   signOut,
   PhoneAuthProvider,
   signInWithPhoneNumber,
-  type User,
-  updateProfile
+  updateProfile as firebaseUpdateProfile,
+  updatePassword as firebaseUpdatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  type User
 } from 'firebase/auth'
 import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore'
 
@@ -16,6 +19,11 @@ interface UserRegistration {
   email: string
   password: string
   displayName: string
+}
+
+interface ProfileUpdate {
+  displayName?: string
+  photoURL?: string
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -58,9 +66,55 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('Firebase authentication is not initialized')
         }
         const userCredential = await createUserWithEmailAndPassword($auth, email, password)
-        await updateProfile(userCredential.user, { displayName })
+        await firebaseUpdateProfile(userCredential.user, { displayName })
         await this.createUserDocument(userCredential.user)
         this.user = userCredential.user
+      } catch (error: any) {
+        this.error = this.getErrorMessage(error.code)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateProfile(profileData: ProfileUpdate) {
+      this.loading = true
+      this.error = null
+      try {
+        const { $auth } = useNuxtApp()
+        if (!$auth || !$auth.currentUser) {
+          throw new Error('Utilisateur non authentifié')
+        }
+        await firebaseUpdateProfile($auth.currentUser, profileData)
+        this.user = $auth.currentUser
+        await this.createUserDocument($auth.currentUser)
+      }
+      catch (error: any) {
+        this.error = this.getErrorMessage(error.code)
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updatePassword(currentPassword: string, newPassword: string) {
+      this.loading = true
+      this.error = null
+      try {
+        const { $auth } = useNuxtApp()
+        if (!$auth || !$auth.currentUser || !$auth.currentUser.email) {
+          throw new Error('Utilisateur non authentifié')
+        }
+
+        // Réauthentifier l'utilisateur
+        const credential = EmailAuthProvider.credential(
+          $auth.currentUser.email,
+          currentPassword
+        )
+        await reauthenticateWithCredential($auth.currentUser, credential)
+
+        // Mettre à jour le mot de passe
+        await firebaseUpdatePassword($auth.currentUser, newPassword)
       } catch (error: any) {
         this.error = this.getErrorMessage(error.code)
         throw error
@@ -184,6 +238,8 @@ export const useAuthStore = defineStore('auth', {
           return 'La fenêtre de connexion a été fermée'
         case 'auth/invalid-api-key':
           return 'Configuration Firebase manquante ou invalide'
+        case 'auth/requires-recent-login':
+          return 'Cette opération nécessite une authentification récente. Veuillez vous reconnecter.'
         default:
           return 'Une erreur est survenue'
       }
