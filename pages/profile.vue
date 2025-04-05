@@ -270,37 +270,6 @@ const updatePassword = async () => {
   }
 };
 
-const generateToken = async () => {
-  loading.value = true;
-  try {
-    await apiStore.generateToken();
-    toast.success("Token généré");
-  } catch {
-    toast.error("Erreur lors de la génération du token");
-  } finally {
-    loading.value = false;
-  }
-};
-
-const revokeToken = async () => {
-  loading.value = true;
-  try {
-    await apiStore.revokeToken();
-    toast.success("Token révoqué");
-  } catch {
-    toast.error("Erreur lors de la révocation");
-  } finally {
-    loading.value = false;
-  }
-};
-
-const copyToken = () => {
-  if (apiStore.token) {
-    navigator.clipboard.writeText(apiStore.token);
-    toast.success("Token copié");
-  }
-};
-
 const handleLogout = async () => {
   loading.value = true;
   try {

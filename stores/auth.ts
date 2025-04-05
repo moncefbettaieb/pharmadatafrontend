@@ -13,7 +13,7 @@ import {
   reauthenticateWithCredential,
   type User
 } from 'firebase/auth'
-import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore'
 
 interface UserRegistration {
   email: string
@@ -43,6 +43,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
+        // Create user document
         const userRef = doc($db, 'users', user.uid)
         await setDoc(userRef, {
           email: user.email,
@@ -51,6 +52,63 @@ export const useAuthStore = defineStore('auth', {
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp()
         }, { merge: true })
+
+        // Create free subscription
+        const subscriptionRef = doc(collection($db, 'subscriptions'))
+        await setDoc(subscriptionRef, {
+          userId: user.uid,
+          planId: 'free',
+          name: 'Gratuit',
+          status: 'active',
+          requestsPerMonth: 100,
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
+          createdAt: serverTimestamp()
+        }, { merge: true })
+        // Create order document
+        const orderRef = doc(collection($db, 'orders'))
+        await setDoc(orderRef, {
+          userId: user.uid,
+          stripeSessionId: null,
+          amount: 0,
+          priceId: 'free',
+          status: 'completed',
+          createdAt: serverTimestamp()
+        }, { merge: true })
+        // Create payment method document
+        const paymentMethodRef = doc(collection($db, 'paymentMethods'))
+        await setDoc(paymentMethodRef, {
+          userId: user.uid,
+          stripePaymentMethodId: null,
+          type: 'free',
+          status: 'active',
+          createdAt: serverTimestamp()
+        }, { merge: true })
+        // Create usage document
+        const usageRef = doc(collection($db, 'usage'))
+        await setDoc(usageRef, {
+          userId: user.uid,
+          requests: 0,
+          requestsLimit: 100,
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
+          createdAt: serverTimestamp()
+        }, { merge: true })
+        // Create logs document
+        const logsRef = doc(collection($db, 'notifications'))
+        await setDoc(logsRef, {
+          userId: user.uid,
+          action: 'create',
+          type: 'user',
+          status: 'success',
+          message: 'Utilisateur créé avec succès',
+          createdAt: serverTimestamp()
+        }, { merge: true })
+        // Update user with subscription reference
+        await setDoc(userRef, {
+          subscriptionId: subscriptionRef.id
+        }, { merge: true })
+
       } catch (error) {
         console.error('Erreur lors de la création du document utilisateur:', error)
         throw error

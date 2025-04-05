@@ -162,9 +162,7 @@ const handleSupportEmail = async () => {
 }
 
 onMounted(async () => {
-  console.log('Montage du composant success.vue')
   const sessionId = route.query.session_id
-  console.log('Session ID:', sessionId)
   
   if (!sessionId) {
     console.warn('Pas de session ID')
@@ -174,9 +172,7 @@ onMounted(async () => {
   }
 
   try {
-    console.log('Appel de getProductFiles...')
     const files = await paymentStore.getProductFiles(sessionId)
-    console.log('Fichiers reçus:', files)
     downloadUrls.value = files
     cartStore.clearCart()
   } catch (err) {

@@ -81,49 +81,6 @@ export const useProductsStore = defineStore('products', {
       }
     },
 
-    async getProductByCip(cipCode: string): Promise<Partial<Product>> {
-      this.loading = true
-      this.error = null
-
-      try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
-          throw new Error('Firebase Functions non initialisé')
-        }
-
-        const getProductCall = httpsCallable($functions, 'getProductByCip')
-        const result = await getProductCall({ cipCode })
-
-        if (!result.data || typeof result.data !== 'object') {
-          throw new Error('Réponse invalide du serveur')
-        }
-
-        const product = result.data as Product
-        
-        // Filtrer les champs non-nuls
-        return Object.fromEntries(
-          Object.entries(product).filter(([_, value]) => value !== null && value !== undefined)
-        ) as Partial<Product>
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue'
-        this.error = errorMessage
-        if (error instanceof Error) {
-          console.error(`Erreur lors de la récupération du produit ${cipCode}: ${error.message}`, {
-            error,
-            cipCode
-          })
-        } else {
-          console.error(`Erreur inconnue lors de la récupération du produit ${cipCode}:`, {
-            error,
-            cipCode
-          })
-        }
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
     async getProductById(id: string): Promise<Product> {
       this.loading = true
       this.error = null

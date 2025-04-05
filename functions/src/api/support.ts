@@ -108,7 +108,6 @@ export const sendSupportEmail = onCall({
     }
 
     await transporter.sendMail(mailOptions)
-    console.log('Email envoyé avec succès')
 
     // Créer une notification pour l'utilisateur
     await db.collection('notifications').add({
@@ -181,7 +180,6 @@ export const sendContactEmail = onCall({
     }
 
     await transporter.sendMail(mailOptions)
-    console.log('Email envoyé avec succès')
 
     return {
       success: true,
