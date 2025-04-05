@@ -10,9 +10,7 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run build"
-      ]
+      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
     }
   ],
   "firestore": {
@@ -21,11 +19,7 @@
   },
   "hosting": {
     "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
         "source": "/api/v1/products",
@@ -35,7 +29,6 @@
         "source": "/api/v1/products/**",
         "function": "getProductByCip"
       },
-
       {
         "source": "/api/v1/payments/products",
         "function": "createProductPaymentSession"
@@ -44,12 +37,10 @@
         "source": "/api/v1/payments/subscription",
         "function": "createSubscription"
       },
-
       {
         "source": "/api/v1/product-files/**",
         "function": "getProductFiles"
       },
-
       {
         "source": "/api/v1/usage",
         "function": "getApiUsage"
@@ -70,7 +61,6 @@
         "source": "/api/v1/performance",
         "function": "getEndpointPerformance"
       },
-
       {
         "source": "/api/v1/tokens/generate",
         "function": "generateToken"
@@ -83,7 +73,6 @@
         "source": "/api/v1/tokens/history",
         "function": "getTokenHistory"
       },
-
       {
         "source": "/api/v1/support",
         "function": "sendSupportEmail"
@@ -92,7 +81,6 @@
         "source": "/api/v1/contact",
         "function": "sendContactEmail"
       },
-
       {
         "source": "/api/v1/notifications",
         "function": "getNotifications"
@@ -109,7 +97,6 @@
         "source": "/api/v1/notifications/delete",
         "function": "deleteNotification"
       },
-
       {
         "source": "/api/v1/errors",
         "function": "getErrorReports"
@@ -126,7 +113,6 @@
         "source": "/api/v1/errors/delete",
         "function": "deleteErrorReport"
       },
-
       {
         "source": "/api/v1/stripe/webhook",
         "function": "handleStripeWebhook"

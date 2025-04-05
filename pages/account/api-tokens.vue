@@ -100,10 +100,6 @@
                   <span v-else>Générer un nouveau token</span>
                 </button>
               </div>
-
-              <div v-if="apiStore.error" class="mt-4 text-sm text-red-600">
-                {{ apiStore.error }}
-              </div>
             </div>
 
             <!-- Utilisation de l'API -->
@@ -239,6 +235,9 @@ curl -X GET \
                 </div>
               </div>
             </div>
+            <div v-if="apiStore.error" class="mt-4 text-sm text-red-600">
+                {{ apiStore.error }}
+              </div>
           </div>
 
           <!-- Import de fichier -->
