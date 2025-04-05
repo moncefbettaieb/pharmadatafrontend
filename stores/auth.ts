@@ -13,7 +13,7 @@ import {
   reauthenticateWithCredential,
   type User
 } from 'firebase/auth'
-import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, serverTimestamp, collection } from 'firebase/firestore'
 
 interface UserRegistration {
   email: string
@@ -43,6 +43,7 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
+        // Create user document
         const userRef = doc($db, 'users', user.uid)
         await setDoc(userRef, {
           email: user.email,
@@ -51,6 +52,25 @@ export const useAuthStore = defineStore('auth', {
           createdAt: serverTimestamp(),
           lastLoginAt: serverTimestamp()
         }, { merge: true })
+
+        // Create free subscription
+        const subscriptionRef = doc(collection($db, 'subscriptions'))
+        await setDoc(subscriptionRef, {
+          userId: user.uid,
+          planId: 'free',
+          name: 'Gratuit',
+          status: 'active',
+          requestsPerMonth: 100,
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
+          createdAt: serverTimestamp()
+        })
+
+        // Update user with subscription reference
+        await setDoc(userRef, {
+          subscriptionId: subscriptionRef.id
+        }, { merge: true })
+
       } catch (error) {
         console.error('Erreur lors de la création du document utilisateur:', error)
         throw error

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { generateToken, revokeToken, getTokenHistory } from './api/tokens'
+import { generateToken, revokeToken, getTokenHistory, getToken } from './api/tokens'
 import { getApiUsage } from './api/usage'
 import { getProducts, getProductByCip } from './api/products'
 import { trackApiUsage, getApiStats } from './api/stats'
@@ -32,6 +32,7 @@ admin.initializeApp()
 // Exporter les fonctions
 export {
   generateToken,
+  getToken,
   revokeToken,
   getTokenHistory,
   getApiUsage,

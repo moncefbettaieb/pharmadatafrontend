@@ -97,7 +97,7 @@ export const getTokenHistory = onCall({
     const tokensSnapshot = await db.collection('api_tokens')
       .where('userId', '==', userId)
       .orderBy('createdAt', 'desc')
-      .limit(50)
+      .limit(10)
       .get()
 
     const tokens = tokensSnapshot.docs.map(doc => ({
@@ -109,6 +109,32 @@ export const getTokenHistory = onCall({
     }))
 
     return tokens
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'historique des tokens:', error)
+    throw new HttpsError('internal', 'Erreur lors de la récupération de l\'historique des tokens')
+  }
+})
+
+export const getToken = onCall({
+  region: 'europe-west9',
+  maxInstances: 10
+}, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'L\'utilisateur doit être authentifié')
+  }
+
+  try {
+    const db = admin.firestore()
+    const userId = request.auth.uid
+
+    // Récupérer tous les tokens de l'utilisateur
+    const token = await db.collection('api_tokens')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .limit(1)
+      .get()
+
+    return token
   } catch (error) {
     console.error('Erreur lors de la récupération de l\'historique des tokens:', error)
     throw new HttpsError('internal', 'Erreur lors de la récupération de l\'historique des tokens')

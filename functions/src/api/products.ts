@@ -201,7 +201,8 @@ export const getProductByCip = onRequest({
     return
   }
 
-  const cip_code = req.query.cip_code as string
+  const pathParts = req.path.split('/')
+  const cip_code = pathParts[pathParts.length - 1] as string
   if (!cip_code) {
     res.status(400).json({ error: 'CIP code is required' })
     return
