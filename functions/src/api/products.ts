@@ -78,10 +78,15 @@ async function listImagesForCip(
 
 async function validateAndExtractToken(authHeader: string | undefined): Promise<string | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.error('Invalid or missing Authorization header')
     return null
   }
 
   const token = authHeader.split('Bearer ')[1]
+  if (!token) {
+    console.error('Token not found in Authorization header')
+    return null
+  }
   if (!token) return null
 
   const tokenDoc = await admin.firestore()
@@ -111,6 +116,7 @@ async function trackTokenUsage(tokenId: string, endpoint: string, responseTime: 
     // Track API usage
     const usageRef = db.collection('api_usage').doc()
     transaction.set(usageRef, {
+      userId: tokenDoc.data()?.userId,
       tokenId,
       endpoint,
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
@@ -201,7 +207,8 @@ export const getProductByCip = onRequest({
     return
   }
 
-  const cip_code = req.query.cip_code as string
+  const pathParts = req.path.split('/')
+  const cip_code = pathParts[pathParts.length - 1] as string
   if (!cip_code) {
     res.status(400).json({ error: 'CIP code is required' })
     return
@@ -228,6 +235,7 @@ export const getProductByCip = onRequest({
     if (imageUrls.length > 0) {
       productData.image_url = imageUrls[0];
     }
+    // Construct the product object with the ID
     const product = {
       id: productDoc.docs[0].id,
       ...productData
