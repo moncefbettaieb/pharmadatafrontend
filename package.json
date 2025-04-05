@@ -22,9 +22,11 @@
     "firebase": "^10.8.0",
     "firebase-tools": "^13.4.1",
     "nuxt": "^3.13.0",
+    "papaparse": "^5.5.2",
     "pdfkit": "^0.14.0",
     "pinia": "^2.1.7",
-    "vue-toastification": "^2.0.0-rc.5"
+    "vue-toastification": "^2.0.0-rc.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@nuxtjs/google-fonts": "^3.1.3",
