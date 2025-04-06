@@ -1,8 +1,12 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div
+    class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8"
+  >
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-        {{ isLogin ? 'Connexion à votre compte' : 'Créer un compte' }}
+      <h2
+        class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900"
+      >
+        {{ isLogin ? "Connexion à votre compte" : "Créer un compte" }}
       </h2>
     </div>
 
@@ -23,6 +27,21 @@
             </svg>
             Continuer avec Google
           </button>
+          <!-- Bouton Apple uniquement sur Mac -->
+          <button
+            v-if="authStore.isMacOS"
+            @click="handleAppleLogin"
+            :disabled="authStore.loading"
+            class="w-full flex justify-center items-center gap-3 px-3 py-1.5 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M17.05 20.28c-.98.95-2.05.88-3.08.41-1.09-.47-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.41C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08M13 7.19c-.06-2.37 1.77-4.4 3.96-4.19.35 2.54-1.95 4.36-3.96 4.19"
+              />
+            </svg>
+            Continuer avec Apple
+          </button>
         </div>
 
         <div class="mt-6">
@@ -40,7 +59,9 @@
         <form class="mt-6 space-y-6" @submit.prevent="handleSubmit">
           <template v-if="!isPhoneLogin">
             <div v-if="!isLogin">
-              <label for="name" class="block text-sm font-medium text-gray-700">Nom</label>
+              <label for="name" class="block text-sm font-medium text-gray-700"
+                >Nom</label
+              >
               <div class="mt-1">
                 <input
                   id="name"
@@ -54,7 +75,9 @@
             </div>
 
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+              <label for="email" class="block text-sm font-medium text-gray-700"
+                >Email</label
+              >
               <div class="mt-1">
                 <input
                   id="email"
@@ -68,7 +91,11 @@
             </div>
 
             <div>
-              <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
+              <label
+                for="password"
+                class="block text-sm font-medium text-gray-700"
+                >Mot de passe</label
+              >
               <div class="mt-1">
                 <input
                   id="password"
@@ -84,7 +111,9 @@
 
           <template v-else>
             <div v-if="!authStore.verificationId">
-              <label for="phone" class="block text-sm font-medium text-gray-700">Numéro de téléphone</label>
+              <label for="phone" class="block text-sm font-medium text-gray-700"
+                >Numéro de téléphone</label
+              >
               <div class="mt-1">
                 <input
                   id="phone"
@@ -99,7 +128,9 @@
             </div>
 
             <div v-else>
-              <label for="code" class="block text-sm font-medium text-gray-700">Code de vérification</label>
+              <label for="code" class="block text-sm font-medium text-gray-700"
+                >Code de vérification</label
+              >
               <div class="mt-1">
                 <input
                   id="code"
@@ -125,21 +156,34 @@
               class="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               <template v-if="!isPhoneLogin">
-                {{ isLogin ? 'Se connecter' : "S'inscrire" }}
+                {{ isLogin ? "Se connecter" : "S'inscrire" }}
               </template>
               <template v-else>
-                {{ authStore.verificationId ? 'Vérifier le code' : 'Envoyer le code' }}
+                {{
+                  authStore.verificationId
+                    ? "Vérifier le code"
+                    : "Envoyer le code"
+                }}
               </template>
             </button>
           </div>
+          <div id="recaptcha-container" class="mt-4"></div>
         </form>
+        <EmailVerification
+          v-if="authStore.user && !authStore.user.emailVerified"
+          :email="authStore.user.email"
+        />
 
         <div class="mt-6 flex flex-col space-y-4">
           <button
             @click="togglePhoneLogin"
             class="text-sm text-indigo-600 hover:text-indigo-500"
           >
-            {{ isPhoneLogin ? 'Utiliser email et mot de passe' : 'Se connecter avec un numéro de téléphone' }}
+            {{
+              isPhoneLogin
+                ? "Utiliser email et mot de passe"
+                : "Se connecter avec un numéro de téléphone"
+            }}
           </button>
 
           <button
@@ -147,7 +191,11 @@
             @click="isLogin = !isLogin"
             class="text-sm text-indigo-600 hover:text-indigo-500"
           >
-            {{ isLogin ? "Pas encore de compte ? S'inscrire" : 'Déjà un compte ? Se connecter' }}
+            {{
+              isLogin
+                ? "Pas encore de compte ? S'inscrire"
+                : "Déjà un compte ? Se connecter"
+            }}
           </button>
         </div>
       </div>
@@ -156,78 +204,90 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '~/stores/auth'
-import { useToast } from 'vue-toastification'
+import { useAuthStore } from "~/stores/auth";
+import { useToast } from "vue-toastification";
 
-const authStore = useAuthStore()
-const router = useRouter()
-const toast = useToast()
-const { user } = storeToRefs(authStore)
-const isLogin = ref(true)
-const isPhoneLogin = ref(false)
-const email = ref('')
-const password = ref('')
-const displayName = ref('')
-const phoneNumber = ref('')
-const verificationCode = ref('')
+const authStore = useAuthStore();
+const router = useRouter();
+const toast = useToast();
+const { user } = storeToRefs(authStore);
+const isLogin = ref(true);
+const isPhoneLogin = ref(false);
+const email = ref("");
+const password = ref("");
+const displayName = ref("");
+const phoneNumber = ref("");
+const verificationCode = ref("");
 
 // Rediriger vers la page d'accueil si l'utilisateur est déjà connecté
 onMounted(() => {
+  authStore.isMacOS = /Mac/.test(navigator.platform);
   if (user.value) {
-    router.push('/account/api-tokens')
+    router.push("/account/api-tokens");
   }
-})
+}
+);
 
 // Observer les changements de l'état de l'utilisateur
 watch(user, (newUser) => {
   if (newUser) {
-    router.push('/account/api-tokens')
+    router.push("/account/api-tokens");
   }
-})
+});
 
 const handleSubmit = async () => {
   try {
     if (isPhoneLogin.value) {
       if (authStore.verificationId) {
-        await authStore.verifyPhoneCode(verificationCode.value)
-        toast.success('Connexion réussie')
-        router.push('/account/api-tokens')
+        await authStore.verifyPhoneCode(verificationCode.value);
+        toast.success("Connexion réussie");
+        router.push("/account/api-tokens");
       } else {
-        await authStore.sendPhoneVerification(phoneNumber.value)
-        toast.success('Code de vérification envoyé')
+        await authStore.sendPhoneVerification(phoneNumber.value);
+        toast.success("Code de vérification envoyé");
       }
     } else if (isLogin.value) {
-      await authStore.login(email.value, password.value)
-      toast.success('Connexion réussie')
-      router.push('/account/api-tokens')
+      await authStore.login(email.value, password.value);
+      toast.success("Connexion réussie");
+      router.push("/account/api-tokens");
     } else {
       await authStore.register({
         email: email.value,
         password: password.value,
-        displayName: displayName.value
-      })
-      toast.success('Inscription réussie')
-      router.push('/account/api-tokens')
+        displayName: displayName.value,
+      });
+      toast.success("Inscription réussie");
+      router.push("/account/api-tokens");
     }
   } catch (error) {
-    toast.error(authStore.error || "Une erreur s'est produite")
+    toast.error(authStore.error || "Une erreur s'est produite");
   }
-}
+};
 
 const handleGoogleLogin = async () => {
   try {
-    await authStore.loginWithGoogle()
+    await authStore.loginWithGoogle();
+    toast.success("Connexion réussie");
+    router.push("/account/api-tokens");
+  } catch (error) {
+    toast.error(authStore.error || "Une erreur s'est produite");
+  }
+};
+
+const togglePhoneLogin = () => {
+  isPhoneLogin.value = !isPhoneLogin.value;
+  authStore.verificationId = null;
+  phoneNumber.value = "";
+  verificationCode.value = "";
+};
+
+const handleAppleLogin = async () => {
+  try {
+    await authStore.loginWithApple()
     toast.success('Connexion réussie')
     router.push('/account/api-tokens')
   } catch (error) {
     toast.error(authStore.error || "Une erreur s'est produite")
   }
-}
-
-const togglePhoneLogin = () => {
-  isPhoneLogin.value = !isPhoneLogin.value
-  authStore.verificationId = null
-  phoneNumber.value = ''
-  verificationCode.value = ''
 }
 </script>

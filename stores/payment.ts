@@ -14,8 +14,8 @@ export const usePaymentStore = defineStore('payment', {
       this.error = null
       
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
@@ -24,7 +24,7 @@ export const usePaymentStore = defineStore('payment', {
           throw new Error('La clé publique Stripe n\'est pas configurée')
         }
 
-        const createCheckoutSessionCall = httpsCallable($functions, 'createCheckoutSession')
+        const createCheckoutSessionCall = httpsCallable($firebaseFunctions, 'createCheckoutSession')
         const result = await createCheckoutSessionCall({ items })
         
         const { sessionId } = result.data as { sessionId: string }

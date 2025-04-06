@@ -11,6 +11,8 @@
 
 <script setup>
 import 'vue-toastification/dist/index.css'
+
+const config = useRuntimeConfig()
 </script>
 
 <style>

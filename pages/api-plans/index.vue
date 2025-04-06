@@ -210,7 +210,7 @@
   const toast = useToast()
   const config = useRuntimeConfig()
   const loading = ref(false)
-  const { $functions } = useNuxtApp()
+  const { $firebaseFunctions } = useNuxtApp()
   const router = useRouter()
   const isAnnual = ref(false)
   
@@ -231,7 +231,7 @@
     }
   
     try {
-      if (!$functions) {
+      if (!$firebaseFunctions) {
         throw new Error('Firebase Functions non initialisé')
       }
   
@@ -245,7 +245,7 @@
         throw new Error('Erreur lors du chargement de Stripe')
       }
   
-      const createSubscriptionCall = httpsCallable($functions, 'createSubscription')
+      const createSubscriptionCall = httpsCallable($firebaseFunctions, 'createSubscription')
       
       const result = await createSubscriptionCall({
         priceId: plan.id,
@@ -280,7 +280,7 @@
   
     loading.value = true
     try {
-      if (!$functions) {
+      if (!$firebaseFunctions) {
         throw new Error('Firebase Functions non initialisé')
       }
   
@@ -289,7 +289,7 @@
         throw new Error('Erreur lors du chargement de Stripe')
       }
   
-      const createLifetimeSessionCall = httpsCallable($functions, 'createLifetimeSession')
+      const createLifetimeSessionCall = httpsCallable($firebaseFunctions, 'createLifetimeSession')
       const result = await createLifetimeSessionCall({
         successUrl: `${window.location.origin}/payment/success`,
         cancelUrl: `${window.location.origin}/payment/cancel`
