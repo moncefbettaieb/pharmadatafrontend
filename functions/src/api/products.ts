@@ -3,16 +3,36 @@ import * as admin from 'firebase-admin'
 import { Storage, GetSignedUrlConfig } from '@google-cloud/storage'
 
 interface Product {
-  id: string
   cip_code: string
   brand: string
   title: string
-  category: string
-  sub_category1: string
-  sub_category2: string
+  categorie: string
+  sous_categorie_1: string
+  sous_categorie_2: string
+  sous_categorie_3: string
   short_desc: string
+  long_desc: string
   image_url: string
   images?: string[]
+  taxonomy_category: string
+  taxonomy_sub_category1: string
+  taxonomy_sub_category2: string
+  taxonomy_sub_category3: string
+  indication_contre_indication: string
+  posologie: string
+  presentation: string
+  specificites: string
+  composition: string
+  conditionnement: string
+  nombre_d_unites: string
+  age_minimum: string
+  volume: string
+  substance_active: string
+  nature_de_produit: string
+  label: string
+  contre_indication: string
+  last_update: string
+  
 }
 
 interface PaginationParams {
@@ -154,7 +174,6 @@ export const getProducts = onCall({
       .get()
 
     const products = productsSnapshot.docs.map(doc => ({
-      id: doc.id,
       ...doc.data()
     })) as Product[]
     const bucketName = "pharma_images"
@@ -236,10 +255,8 @@ export const getProductByCip = onRequest({
       productData.image_url = imageUrls[0];
     }
     // Construct the product object with the ID
-    const product = {
-      id: productDoc.docs[0].id,
-      ...productData
-    }
+    const product = productDoc.docs[0].data() as Product
+    console.log('Product data:', productData)
 
     await trackTokenUsage(tokenId, 'getProductByCip', Date.now() - startTime, true)
     res.json(product)

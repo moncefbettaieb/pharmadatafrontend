@@ -853,8 +853,9 @@ const processCipCodes = async (cipCodes: string[]) => {
             cip_code: cipCode,
             title: "-",
             brand: "-",
-            status: "error",
+            status: "Non Trouvé",
             last_update: null,
+            fullData: "-",
           });
         }
       })
