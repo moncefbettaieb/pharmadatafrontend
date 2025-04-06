@@ -105,7 +105,7 @@
 </template>
 
 <script setup>
-import { usePaymentCartStore } from '~/stores/paymentCart'
+import { usePaymentCartStore } from '~/stores/payment-cart'
 import { useCartStore } from '~/stores/cart'
 import { useToast } from 'vue-toastification'
 import { httpsCallable } from 'firebase/functions'

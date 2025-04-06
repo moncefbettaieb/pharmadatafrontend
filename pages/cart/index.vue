@@ -110,7 +110,7 @@
 
 <script setup lang="ts">
 import { useCartStore } from '~/stores/cart'
-import { usePaymentCartStore } from '~/stores/paymentCart'
+import { usePaymentCartStore } from '~/stores/payment-cart'
 import { useAuthStore } from '~/stores/auth'
 import { useToast } from 'vue-toastification'
 

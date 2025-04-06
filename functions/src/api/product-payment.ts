@@ -81,8 +81,8 @@ export const createProductPaymentSession = onCall({
         },
         quantity: 1
       })),
-      success_url: `${frontendUrl}/paymentCart/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${frontendUrl}/paymentCart/cancel`,
+      success_url: `${frontendUrl}/payment-cart/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/payment-cart/cancel`,
       metadata: {
         userId,
         productIds: JSON.stringify(items.map(item => item.productId))
