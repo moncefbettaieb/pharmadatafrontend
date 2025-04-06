@@ -3,6 +3,7 @@ import * as admin from 'firebase-admin'
 import { Storage, GetSignedUrlConfig } from '@google-cloud/storage'
 
 interface Product {
+  id: string
   cip_code: string
   brand: string
   title: string
@@ -174,6 +175,7 @@ export const getProducts = onCall({
       .get()
 
     const products = productsSnapshot.docs.map(doc => ({
+      id: doc.id, // Ajout
       ...doc.data()
     })) as Product[]
     const bucketName = "pharma_images"
@@ -254,9 +256,10 @@ export const getProductByCip = onRequest({
     if (imageUrls.length > 0) {
       productData.image_url = imageUrls[0];
     }
-    // Construct the product object with the ID
-    const product = productDoc.docs[0].data() as Product
-    console.log('Product data:', productData)
+    const product = {
+      id: productDoc.docs[0].id,
+      ...productData
+    }
 
     await trackTokenUsage(tokenId, 'getProductByCip', Date.now() - startTime, true)
     res.json(product)

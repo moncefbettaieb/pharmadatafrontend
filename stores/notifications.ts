@@ -29,12 +29,12 @@ export const useNotificationsStore = defineStore('notifications', {
       this.error = null
 
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const getNotificationsCall = httpsCallable($functions, 'getNotifications')
+        const getNotificationsCall = httpsCallable($firebaseFunctions, 'getNotifications')
         const result = await getNotificationsCall()
 
         if (!result.data || typeof result.data !== 'object') {
@@ -53,12 +53,12 @@ export const useNotificationsStore = defineStore('notifications', {
 
     async markAsRead(notificationId: string) {
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const markNotificationAsReadCall = httpsCallable($functions, 'markNotificationAsRead')
+        const markNotificationAsReadCall = httpsCallable($firebaseFunctions, 'markNotificationAsRead')
         await markNotificationAsReadCall({ notificationId })
 
         // Mettre à jour localement
@@ -74,12 +74,12 @@ export const useNotificationsStore = defineStore('notifications', {
 
     async deleteNotification(notificationId: string) {
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const deleteNotificationCall = httpsCallable($functions, 'deleteNotification')
+        const deleteNotificationCall = httpsCallable($firebaseFunctions, 'deleteNotification')
         await deleteNotificationCall({ notificationId })
 
         // Supprimer localement

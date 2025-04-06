@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { httpsCallable } from "firebase/functions";
+import type { PersistenceOptions as PersistenceOptions } from "pinia-plugin-persistedstate";
 
 interface ApiUsage {
   date: string;
@@ -55,12 +56,12 @@ export const useApiStore = defineStore("api", {
       this.loading = true;
       this.error = null;
       try {
-        const { $functions } = useNuxtApp();
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp();
+        if (!$firebaseFunctions) {
           throw new Error("Firebase Functions non initialisé");
         }
 
-        const generateTokenCall = httpsCallable($functions, "generateToken");
+        const generateTokenCall = httpsCallable($firebaseFunctions, "generateToken");
         const result = await generateTokenCall();
 
         if (!result.data || typeof result.data !== "object") {
@@ -94,12 +95,12 @@ export const useApiStore = defineStore("api", {
       this.error = null;
 
       try {
-        const { $functions } = useNuxtApp();
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp();
+        if (!$firebaseFunctions) {
           throw new Error("Firebase Functions non initialisé");
         }
 
-        const revokeTokenCall = httpsCallable($functions, "revokeToken");
+        const revokeTokenCall = httpsCallable($firebaseFunctions, "revokeToken");
         await revokeTokenCall();
 
         const currentToken = this.history.find((t) => !t.revokedAt);
@@ -121,12 +122,12 @@ export const useApiStore = defineStore("api", {
       this.error = null;
 
       try {
-        const { $functions } = useNuxtApp();
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp();
+        if (!$firebaseFunctions) {
           throw new Error("Firebase Functions non initialisé");
         }
 
-        const getApiUsageCall = httpsCallable($functions, "getApiUsage");
+        const getApiUsageCall = httpsCallable($firebaseFunctions, "getApiUsage");
         const result = await getApiUsageCall();
 
         if (!result.data || typeof result.data !== "object") {
@@ -154,13 +155,13 @@ export const useApiStore = defineStore("api", {
       this.error = null;
 
       try {
-        const { $functions } = useNuxtApp();
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp();
+        if (!$firebaseFunctions) {
           throw new Error("Firebase Functions non initialisé");
         }
 
         const getTokenHistoryCall = httpsCallable(
-          $functions,
+          $firebaseFunctions,
           "getTokenHistory"
         );
         const result = await getTokenHistoryCall();
@@ -174,10 +175,11 @@ export const useApiStore = defineStore("api", {
         // Mettre à jour le token actif depuis l'historique
         const activeToken = this.history.find((t) => !t.revokedAt);
         if (activeToken) {
-          const getTokenCall = httpsCallable($functions, "getToken");
+          const getTokenCall = httpsCallable($firebaseFunctions, "getToken");
           const tokenResult = await getTokenCall({ tokenId: activeToken.id });
-          if (tokenResult.data && tokenResult.data.token) {
-            this.token = tokenResult.data.token;
+          const data = tokenResult.data as { token: string };
+          if (data && data.token) {
+            this.token = data.token;
           }
         }
       } catch (error) {
@@ -192,7 +194,7 @@ export const useApiStore = defineStore("api", {
 
   persist: {
     key: "api-store",
-    storage: persistedState.localStorage,
+    storage: localStorage,
     paths: ["token", "history"],
-  },
+  } as PersistenceOptions<ApiState>,
 });

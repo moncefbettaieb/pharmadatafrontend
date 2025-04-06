@@ -94,7 +94,7 @@
   import { useNuxtApp } from '#app'
   
   const toast = useToast()
-  const { $functions } = useNuxtApp()
+  const { $firebaseFunctions } = useNuxtApp()
   
   const loading = ref(false)
   const formData = ref({
@@ -108,8 +108,8 @@
   const handleSubmit = async () => {
     loading.value = true
     try {
-      if (!$functions) throw new Error('Firebase Functions non initialisé')
-      const sendEmailCall = httpsCallable($functions, 'sendContactEmail')
+      if (!$firebaseFunctions) throw new Error('Firebase Functions non initialisé')
+      const sendEmailCall = httpsCallable($firebaseFunctions, 'sendContactEmail')
       await sendEmailCall({
         subject: formData.value.subject,
         message: formData.value.message,

@@ -19,6 +19,7 @@
     "@pinia/nuxt": "^0.5.1",
     "@stripe/stripe-js": "^3.0.7",
     "@types/pdfkit": "^0.13.4",
+    "dotenv": "^16.4.7",
     "firebase": "^10.8.0",
     "firebase-tools": "^13.4.1",
     "nuxt": "^3.13.0",
