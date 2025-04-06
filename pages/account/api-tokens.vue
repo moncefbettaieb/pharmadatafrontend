@@ -5,7 +5,9 @@
       <div class="bg-white shadow sm:rounded-lg mb-8">
         <div class="px-4 py-5 sm:p-6">
           <!-- Sur petits écrans, empile le contenu, sur sm+ écrans, items-center et justify-between -->
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="flex flex-col sm:flex-row sm:items-center sm:justify-between"
+          >
             <div>
               <h3 class="text-lg font-semibold text-gray-900">Plan actuel</h3>
               <div class="mt-2 max-w-xl text-sm text-gray-500">
@@ -68,8 +70,9 @@
               <div v-if="apiStore.token" class="mt-5">
                 <div class="rounded-md bg-gray-50 p-4">
                   <div class="flex flex-col sm:flex-row sm:items-center">
-                    <pre class="flex-1 text-sm text-gray-900 overflow-x-auto break-all">
-{{ apiStore.token }}
+                    <pre
+                      class="flex-1 text-sm text-gray-900 overflow-x-auto break-all"
+                      >{{ apiStore.token }}
                     </pre>
                     <button
                       @click="copyToken"
@@ -173,19 +176,49 @@
                     <h4 class="text-sm font-medium text-gray-900">
                       Authentification
                     </h4>
-                    <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all">
+                    <pre
+                      class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all"
+                    >
 Authorization: Bearer {{ apiStore.token || "votre_token" }}
                     </pre>
                   </div>
                   <div>
+                    <div class="flex justify-between items-center"></div>
                     <h4 class="text-sm font-medium text-gray-900">
-                      Exemple de requête
+                      Exemple de Requête
                     </h4>
-                    <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all">
+                    <button
+                      @click="copyRequest"
+                      class="text-sm text-indigo-600 hover:text-indigo-500"
+                    >
+                      Copier
+                    </button>
+                  </div>
+                  <pre
+                    class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all"
+                  >
 curl -X GET \
   https://fournisseur-data.firebaseapp.com/api/v1/products/1234567890123 \
-  -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'
-                    </pre>
+  -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'</pre
+                  >
+
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-900">
+                      Exemple de Réonse
+                    </h4>
+                    <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto">
+{
+  "id": "abc123",
+  "cip_code": "1234567890123",
+  "title": "DOLIPRANE 1000mg",
+  "brand": "SANOFI",
+  "category": "Médicaments",
+  "short_desc": "Paracétamol 1000mg comprimés",
+  "composition": "Paracétamol",
+  "posologie": "1 comprimé toutes les 6 heures",
+  "last_update": "2025-03-06"
+}</pre
+                    >
                   </div>
                 </div>
               </div>
@@ -203,9 +236,13 @@ curl -X GET \
                         :key="token.id"
                         class="py-4"
                       >
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+                        <div
+                          class="flex flex-col sm:flex-row sm:items-center sm:space-x-4"
+                        >
                           <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">
+                            <p
+                              class="text-sm font-medium text-gray-900 truncate"
+                            >
                               Token {{ token.id.substring(0, 8) }}...
                             </p>
                             <p class="text-sm text-gray-500">
@@ -259,7 +296,9 @@ curl -X GET \
                   Importez un fichier contenant des codes CIP pour récupérer les
                   informations des produits.
                 </p>
-                <div class="mt-2 py-2 px-3 bg-blue-50 rounded-md text-blue-800 text-xs">
+                <div
+                  class="mt-2 py-2 px-3 bg-blue-50 rounded-md text-blue-800 text-xs"
+                >
                   <p class="font-medium mb-1">Formats de fichier acceptés :</p>
                   <ul class="list-disc list-inside space-y-1">
                     <li>
@@ -357,7 +396,9 @@ curl -X GET \
 
               <!-- Résultats -->
               <div v-if="results.length > 0" class="mt-8">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                <div
+                  class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"
+                >
                   <h4 class="text-sm font-medium text-gray-900">
                     Résultats ({{ results.length }} produits)
                   </h4>
@@ -366,9 +407,7 @@ curl -X GET \
                       <span
                         class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"
                       ></span>
-                      {{
-                        results.filter((r) => r.status === "success").length
-                      }}
+                      {{ results.filter((r) => r.status === "success").length }}
                       trouvés
                     </span>
                     <span class="text-sm text-gray-600">
@@ -381,7 +420,9 @@ curl -X GET \
                   </div>
                 </div>
                 <!-- overflow-x-auto pour permettre le scroll sur mobile -->
-                <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                <div
+                  class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg"
+                >
                   <table class="min-w-full divide-y divide-gray-300">
                     <!-- Partie <thead> -->
                     <thead class="bg-gray-50">
@@ -457,7 +498,9 @@ curl -X GET \
                             class="inline-flex rounded-full px-2 text-xs font-semibold leading-5"
                           >
                             {{
-                              result.status === "success" ? "Succès" : "Erreur"
+                              result.status === "success"
+                                ? "Succès"
+                                : "Produit Non trouvé"
                             }}
                           </span>
                         </td>
@@ -506,8 +549,8 @@ curl -X GET \
                             v-if="expandedIndex === index"
                             class="mt-2 p-2 border rounded bg-gray-50"
                           >
-                            <pre class="text-xs whitespace-pre-wrap">
-{{ JSON.stringify(result.fullData, null, 2) }}
+                            <pre class="text-xs whitespace-pre-wrap"
+                              >{{ JSON.stringify(result.fullData, null, 2) }}
                             </pre>
                           </div>
                         </td>
@@ -518,10 +561,14 @@ curl -X GET \
               </div>
             </div>
           </div>
-        </div> <!-- Fin p-6 -->
-      </div> <!-- Fin .bg-white -->
-    </div> <!-- Fin max-w-7xl -->
-  </div> <!-- Fin min-h-screen -->
+        </div>
+        <!-- Fin p-6 -->
+      </div>
+      <!-- Fin .bg-white -->
+    </div>
+    <!-- Fin max-w-7xl -->
+  </div>
+  <!-- Fin min-h-screen -->
 </template>
 
 <script setup lang="ts">
@@ -596,6 +643,14 @@ const copyToken = () => {
     navigator.clipboard.writeText(apiStore.token);
     toast.success("Token copié dans le presse-papier");
   }
+};
+
+const copyRequest = () => {
+  const request = `curl -X GET \\
+  https://fournisseur-data.firebaseapp.com/api/v1/products/1234567890123 \\
+  -H 'Authorization: Bearer ${apiStore.token || "votre_token"}'`;
+  navigator.clipboard.writeText(request);
+  toast.info("Exemple de requête copié dans le presse-papier");
 };
 
 const handleFileUpload = async (event: Event) => {
