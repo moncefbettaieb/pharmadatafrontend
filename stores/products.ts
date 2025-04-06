@@ -42,12 +42,12 @@ export const useProductsStore = defineStore('products', {
       this.error = null
 
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const getProductsCall = httpsCallable($functions, 'getProducts')
+        const getProductsCall = httpsCallable($firebaseFunctions, 'getProducts')
         const result = await getProductsCall(params)
 
         if (!result.data || typeof result.data !== 'object') {

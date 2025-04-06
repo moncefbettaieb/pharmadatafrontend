@@ -254,7 +254,7 @@ curl -X GET \
   "sous_categorie_1": "Peau, Cheveux",
   "label": null,
   "contre_indication": null,
-  "long_desc": "Volume : 50 g Nombre d’unités : 1 Âge minimum : 15 ans Nature de produit ...",
+  "long_desc": "Volume : 50 g Nombre d'unités : 1 Âge minimum : 15 ans Nature de produit ...",
   "taxonomy_sub_category3": null,
   "cip_code": "3400930001479",
   "taxonomy_sub_category2": "Médicaments pour animaux de compagnie",
@@ -592,7 +592,7 @@ curl -X GET \
                             Copier
                           </button>
 
-                          <!-- 3) Bloc affichant toutes les données, si c’est la ligne courante -->
+                          <!-- 3) Bloc affichant toutes les données, si c'est la ligne courante -->
                           <div
                             v-if="expandedIndex === index"
                             class="mt-2 p-2 border rounded bg-gray-50"
@@ -620,7 +620,7 @@ curl -X GET \
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, watch } from 'vue'
 import { useApiStore } from "~/stores/api";
 import { useToast } from "vue-toastification";
 import { read, utils } from "xlsx";
@@ -917,8 +917,8 @@ const extractCipCodesFromJson = (jsonData: any): string[] => {
 const processCipCodes = async (cipCodes: string[]) => {
   results.value = [];
 
-  const { $functions } = useNuxtApp();
-  if (!$functions) throw new Error("Firebase Functions non initialisé");
+  const { $firebaseFunctions } = useNuxtApp();
+  if (!$firebaseFunctions) throw new Error("Firebase Functions non initialisé");
 
   // Traiter par lot de 10 pour éviter de surcharger le serveur
   const batchSize = 10;
@@ -985,6 +985,7 @@ const formatDateTime = (dateString: string) => {
 };
 
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ["auth-verified"],
 });
 </script>
+

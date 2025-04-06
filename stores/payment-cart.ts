@@ -26,8 +26,8 @@ export const usePaymentCartStore = defineStore('paymentCart', {
       this.error = null
       
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
@@ -37,7 +37,7 @@ export const usePaymentCartStore = defineStore('paymentCart', {
         }
 
         // Appeler la Cloud Function
-        const createSessionCall = httpsCallable($functions, 'createProductPaymentSession')
+        const createSessionCall = httpsCallable($firebaseFunctions, 'createProductPaymentSession')
         const result = await createSessionCall({
           items: items.map(item => ({
             productId: item.productId,
@@ -71,12 +71,12 @@ export const usePaymentCartStore = defineStore('paymentCart', {
       this.selectedFormat = format
       
       try {
-        const { $functions } = useNuxtApp()
-        if (!$functions) {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const getFilesCall = httpsCallable($functions, 'getProductFiles')
+        const getFilesCall = httpsCallable($firebaseFunctions, 'getProductFiles')
         const result = await getFilesCall({ sessionId, format })
         
         const { files } = result.data as { files: string[] }

@@ -141,10 +141,10 @@ const handleSupportEmail = async () => {
 
   sendingEmail.value = true
   try {
-    const { $functions } = useNuxtApp()
-    if (!$functions) throw new Error('Firebase Functions non initialisé')
+    const { $firebaseFunctions } = useNuxtApp()
+    if (!$firebaseFunctions) throw new Error('Firebase Functions non initialisé')
 
-    const sendEmailCall = httpsCallable($functions, 'sendSupportEmail')
+    const sendEmailCall = httpsCallable($firebaseFunctions, 'sendSupportEmail')
     await sendEmailCall({
       subject: 'Problème avec le téléchargement des fichiers',
       message: supportMessage.value,

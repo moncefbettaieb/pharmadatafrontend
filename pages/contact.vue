@@ -180,9 +180,9 @@
       if (!formData.value.email.trim()) return
       if (!formData.value.subject.trim()) return
         try {
-          const { $functions } = useNuxtApp()
-          if (!$functions) throw new Error('Firebase Functions non initialisé')
-          const sendEmailCall = httpsCallable($functions, 'sendContactEmail')
+          const { $firebaseFunctions } = useNuxtApp()
+          if (!$firebaseFunctions) throw new Error('Firebase Functions non initialisé')
+          const sendEmailCall = httpsCallable($firebaseFunctions, 'sendContactEmail')
           await sendEmailCall({
             subject: formData.value.subject,
             message: formData.value.message,

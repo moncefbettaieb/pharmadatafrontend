@@ -441,6 +441,6 @@ const handleSubmit = async () => {
 
 // Protection de la route
 definePageMeta({
-  middleware: ["auth"],
+  middleware: ['auth-verified'],
 });
 </script>
