@@ -4,7 +4,8 @@
       <!-- Plan actuel -->
       <div class="bg-white shadow sm:rounded-lg mb-8">
         <div class="px-4 py-5 sm:p-6">
-          <div class="sm:flex sm:items-center sm:justify-between">
+          <!-- Sur petits écrans, empile le contenu, sur sm+ écrans, items-center et justify-between -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 class="text-lg font-semibold text-gray-900">Plan actuel</h3>
               <div class="mt-2 max-w-xl text-sm text-gray-500">
@@ -20,7 +21,7 @@
             <div class="mt-4 sm:mt-0">
               <NuxtLink
                 to="/api-plans"
-                class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+                class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
               >
                 Changer de plan
               </NuxtLink>
@@ -66,13 +67,13 @@
 
               <div v-if="apiStore.token" class="mt-5">
                 <div class="rounded-md bg-gray-50 p-4">
-                  <div class="flex">
-                    <pre class="flex-1 text-sm text-gray-900">{{
-                      apiStore.token
-                    }}</pre>
+                  <div class="flex flex-col sm:flex-row sm:items-center">
+                    <pre class="flex-1 text-sm text-gray-900 overflow-x-auto break-all">
+{{ apiStore.token }}
+                    </pre>
                     <button
                       @click="copyToken"
-                      class="ml-3 inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                      class="mt-3 sm:mt-0 sm:ml-3 inline-flex items-center justify-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                     >
                       Copier
                     </button>
@@ -82,7 +83,7 @@
                   <button
                     @click="handleRevokeToken"
                     :disabled="apiStore.loading"
-                    class="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                    class="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
                   >
                     <span v-if="apiStore.loading">Révocation en cours...</span>
                     <span v-else>Révoquer le token</span>
@@ -94,7 +95,7 @@
                 <button
                   @click="handleGenerateToken"
                   :disabled="apiStore.loading"
-                  class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  class="inline-flex items-center justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
                 >
                   <span v-if="apiStore.loading">Génération en cours...</span>
                   <span v-else>Générer un nouveau token</span>
@@ -111,12 +112,12 @@
                 Utilisation de l'API
               </h3>
               <div class="mt-4">
-                <div class="flex justify-between mb-2">
+                <div class="flex flex-col sm:flex-row sm:justify-between mb-2">
                   <span class="text-sm font-medium text-gray-700">
                     {{ apiStore.currentPlan.remainingRequests }} requêtes
                     restantes sur {{ apiStore.currentPlan.requestsPerMonth }}
                   </span>
-                  <span class="text-sm font-medium text-gray-700">
+                  <span class="text-sm font-medium text-gray-700 mt-1 sm:mt-0">
                     {{ apiStore.usagePercentage }}%
                   </span>
                 </div>
@@ -131,12 +132,12 @@
                       'bg-red-500': apiStore.usagePercentage >= 90,
                     }"
                   ></div>
-                  <div class="flex justify-between mb-2">
-                    <span class="text-sm font-medium text-gray-700">
-                      Fin de l'abonneement le :
-                      {{ formatDate(apiStore.currentPlan.periodEnd) }}
-                    </span>
-                  </div>
+                </div>
+                <div class="flex justify-between mb-2 mt-2">
+                  <span class="text-sm font-medium text-gray-700">
+                    Fin de l'abonnement le :
+                    {{ formatDate(apiStore.currentPlan.periodEnd) }}
+                  </span>
                 </div>
               </div>
 
@@ -145,7 +146,8 @@
                 <h4 class="text-sm font-medium text-gray-900 mb-4">
                   Historique d'utilisation
                 </h4>
-                <div class="grid grid-cols-7 gap-2">
+                <!-- Sur petits écrans, le grid passera en 1 colonne -->
+                <div class="grid grid-cols-1 sm:grid-cols-7 gap-2">
                   <div
                     v-for="day in apiStore.usage"
                     :key="day.date"
@@ -162,7 +164,7 @@
               </div>
 
               <!-- Documentation d'utilisation -->
-              <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+              <div class="border-t border-gray-200 px-4 py-5 sm:p-6 mt-6">
                 <h3 class="text-base font-semibold leading-6 text-gray-900">
                   Utilisation de l'API
                 </h3>
@@ -171,19 +173,19 @@
                     <h4 class="text-sm font-medium text-gray-900">
                       Authentification
                     </h4>
-                    <pre class="mt-2 rounded-md bg-gray-50 p-4">
-Authorization: Bearer {{ apiStore.token || "votre_token" }}</pre
-                    >
+                    <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all">
+Authorization: Bearer {{ apiStore.token || "votre_token" }}
+                    </pre>
                   </div>
                   <div>
                     <h4 class="text-sm font-medium text-gray-900">
                       Exemple de requête
                     </h4>
-                    <pre class="mt-2 rounded-md bg-gray-50 p-4">
+                    <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all">
 curl -X GET \
   https://fournisseur-data.firebaseapp.com/api/v1/products/1234567890123 \
-  -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'</pre
-                    >
+  -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'
+                    </pre>
                   </div>
                 </div>
               </div>
@@ -201,11 +203,9 @@ curl -X GET \
                         :key="token.id"
                         class="py-4"
                       >
-                        <div class="flex items-center space-x-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
                           <div class="flex-1 min-w-0">
-                            <p
-                              class="text-sm font-medium text-gray-900 truncate"
-                            >
+                            <p class="text-sm font-medium text-gray-900 truncate">
                               Token {{ token.id.substring(0, 8) }}...
                             </p>
                             <p class="text-sm text-gray-500">
@@ -225,7 +225,7 @@ curl -X GET \
                               {{ formatDateTime(token.lastUsed) }}
                             </p>
                           </div>
-                          <div class="inline-flex items-center">
+                          <div class="inline-flex mt-2 sm:mt-0">
                             <span
                               class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                               :class="{
@@ -259,9 +259,7 @@ curl -X GET \
                   Importez un fichier contenant des codes CIP pour récupérer les
                   informations des produits.
                 </p>
-                <div
-                  class="mt-2 py-2 px-3 bg-blue-50 rounded-md text-blue-800 text-xs"
-                >
+                <div class="mt-2 py-2 px-3 bg-blue-50 rounded-md text-blue-800 text-xs">
                   <p class="font-medium mb-1">Formats de fichier acceptés :</p>
                   <ul class="list-disc list-inside space-y-1">
                     <li>
@@ -285,6 +283,7 @@ curl -X GET \
               </div>
 
               <div class="mt-5">
+                <!-- Uploader -->
                 <div class="flex items-center justify-center w-full">
                   <label
                     class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
@@ -358,16 +357,18 @@ curl -X GET \
 
               <!-- Résultats -->
               <div v-if="results.length > 0" class="mt-8">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                   <h4 class="text-sm font-medium text-gray-900">
                     Résultats ({{ results.length }} produits)
                   </h4>
-                  <div>
+                  <div class="mt-2 sm:mt-0">
                     <span class="mr-4 text-sm text-gray-600">
                       <span
                         class="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"
                       ></span>
-                      {{ results.filter((r) => r.status === "success").length }}
+                      {{
+                        results.filter((r) => r.status === "success").length
+                      }}
                       trouvés
                     </span>
                     <span class="text-sm text-gray-600">
@@ -379,9 +380,8 @@ curl -X GET \
                     </span>
                   </div>
                 </div>
-                <div
-                  class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg"
-                >
+                <!-- overflow-x-auto pour permettre le scroll sur mobile -->
+                <div class="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
                   <table class="min-w-full divide-y divide-gray-300">
                     <!-- Partie <thead> -->
                     <thead class="bg-gray-50">
@@ -427,7 +427,6 @@ curl -X GET \
                     </thead>
                     <!-- Partie <tbody> -->
                     <tbody class="divide-y divide-gray-200 bg-white">
-                      <!-- Ajout de l'index (2e argument) pour savoir quelle ligne on affiche -->
                       <tr
                         v-for="(result, index) in results"
                         :key="result.cip_code"
@@ -507,10 +506,9 @@ curl -X GET \
                             v-if="expandedIndex === index"
                             class="mt-2 p-2 border rounded bg-gray-50"
                           >
-                            <pre class="text-xs whitespace-pre-wrap"
-                              >{{ JSON.stringify(result.fullData, null, 2) }}
-                            </pre
-                            >
+                            <pre class="text-xs whitespace-pre-wrap">
+{{ JSON.stringify(result.fullData, null, 2) }}
+                            </pre>
                           </div>
                         </td>
                       </tr>
@@ -520,10 +518,10 @@ curl -X GET \
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        </div> <!-- Fin p-6 -->
+      </div> <!-- Fin .bg-white -->
+    </div> <!-- Fin max-w-7xl -->
+  </div> <!-- Fin min-h-screen -->
 </template>
 
 <script setup lang="ts">
