@@ -187,25 +187,50 @@ Authorization: Bearer {{ apiStore.token || "votre_token" }}
                     <h4 class="text-sm font-medium text-gray-900">
                       Exemple de Requête
                     </h4>
-                  </div>
-                  <div class="flex flex-col sm:flex-row sm:items-center">
-                    <pre
-                      class="flex-1 text-sm text-gray-900 overflow-x-auto break-all"
-                    >
+
+                    <div class="flex flex-col sm:flex-row sm:items-center">
+                      <pre
+                        class="flex-1 text-sm text-gray-900 overflow-x-auto break-all"
+                      >
 curl -X GET \
   https://fournisseur-data.firebaseapp.com/api/v1/products/3400930001479 \
   -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'
-                    </pre>
-                    <button
-                      @click="copyRequest"
-                      class="mt-3 sm:mt-0 sm:ml-3 inline-flex items-center justify-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                    >
-                      Copier
-                    </button>
+                    </pre
+                      >
+                      <button
+                        @click="copyRequest"
+                        class="mt-3 sm:mt-0 sm:ml-3 inline-flex items-center justify-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                      >
+                        Copier
+                      </button>
+                    </div>
+
+                    <!-- Ajout du lien vers la documentation -->
+                    <div class="mt-4 flex justify-end">
+                      <NuxtLink
+                        to="/api-documentation"
+                        class="text-sm text-indigo-600 hover:text-indigo-500 flex items-center"
+                      >
+                        Voir toute la documentation
+                        <svg
+                          class="ml-1 h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </NuxtLink>
+                    </div>
                   </div>
                   <div>
                     <h4 class="text-sm font-medium text-gray-900">
-                      Exemple de Réonse
+                      Exemple de Réponse
                     </h4>
                     <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto">
                       {
