@@ -187,36 +187,59 @@ Authorization: Bearer {{ apiStore.token || "votre_token" }}
                     <h4 class="text-sm font-medium text-gray-900">
                       Exemple de Requête
                     </h4>
+                  </div>
+                  <div class="flex flex-col sm:flex-row sm:items-center">
+                    <pre
+                      class="flex-1 text-sm text-gray-900 overflow-x-auto break-all"
+                    >
+curl -X GET \
+  https://fournisseur-data.firebaseapp.com/api/v1/products/3400930001479 \
+  -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'
+                    </pre>
                     <button
                       @click="copyRequest"
-                      class="text-sm text-indigo-600 hover:text-indigo-500"
+                      class="mt-3 sm:mt-0 sm:ml-3 inline-flex items-center justify-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                     >
                       Copier
                     </button>
                   </div>
-                  <pre
-                    class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto break-all"
-                  >
-curl -X GET \
-  https://fournisseur-data.firebaseapp.com/api/v1/products/1234567890123 \
-  -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'</pre
-                  >
-
                   <div>
                     <h4 class="text-sm font-medium text-gray-900">
                       Exemple de Réonse
                     </h4>
                     <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto">
-{
-  "id": "abc123",
-  "cip_code": "1234567890123",
-  "title": "DOLIPRANE 1000mg",
-  "brand": "SANOFI",
-  "category": "Médicaments",
-  "short_desc": "Paracétamol 1000mg comprimés",
-  "composition": "Paracétamol",
-  "posologie": "1 comprimé toutes les 6 heures",
-  "last_update": "2025-03-06"
+                      {
+  "conditionnement": null,
+  "title": "A 313 Pommade dermique, 200 000 UI - Tube 50g",
+  "source": "pharmacie-du-centre",
+  "taxonomy_sub_category1": "Articles pour animaux de compagnie",
+  "combined_categorie": "Médicaments Peau, Cheveux Irritation A 313 Pommade dermique, 200 000 UI - Tube 50g",
+  "indication_contre_indication": "Déconseillé aux femmes enceintes et allaitantes, Ne pas avaler, Tenir hors de portée des enfants, Usage externe uniquement.",
+  "composition_fp": null,
+  "brand": "PHARMA DEVELOPPEMENT",
+  "specificites": null,
+  "composition": null,
+  "taxonomy_category": "Animaux et articles pour animaux de compagnie",
+  "sous_categorie_3": "A 313 Pommade dermique, 200 000 UI - Tube 50g",
+  "nombre_d_unites": "1",
+  "substance_active": "Vitamine A (concentrat de)synthétique, forme huileuse",
+  "presentation": null,
+  "nature_de_produit": "Pommade",
+  "sous_categorie_2": "Irritation",
+  "sous_categorie_1": "Peau, Cheveux",
+  "label": null,
+  "contre_indication": null,
+  "long_desc": "Volume : 50 g Nombre d’unités : 1 Âge minimum : 15 ans Nature de produit ...",
+  "taxonomy_sub_category3": null,
+  "cip_code": "3400930001479",
+  "taxonomy_sub_category2": "Médicaments pour animaux de compagnie",
+  "usage": null,
+  "posologie": null,
+  "volume": "50 g",
+  "last_update": "2025-03-26T20:18:06.423757Z",
+  "categorie": "Médicaments",
+  "age_minimum": "15 ans",
+  "short_desc": "Traitement d'appoint des dermites irritatives."
 }</pre
                     >
                   </div>
