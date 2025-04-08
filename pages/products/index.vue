@@ -192,18 +192,46 @@
               class="isolate inline-flex -space-x-px rounded-md shadow-sm"
               aria-label="Pagination"
             >
+              <!-- Bouton Précédent -->
+              <button
+                @click="currentPage > 1 ? currentPage-- : null"
+                :disabled="currentPage === 1"
+                class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
+              >
+                <span class="sr-only">Précédent</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              
+              <!-- Pages -->
               <button
                 v-for="page in displayedPages"
                 :key="page"
-                @click="currentPage = page"
+                @click="typeof page === 'number' ? currentPage = page : null"
                 :class="[
                   page === currentPage
                     ? 'bg-indigo-600 text-white'
                     : 'bg-white text-gray-500 hover:bg-gray-50',
                   'relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300',
+                  typeof page !== 'number' ? 'cursor-default' : ''
                 ]"
               >
                 {{ page }}
+              </button>
+              
+              <!-- Bouton Suivant -->
+              <button
+                @click="productsStore.pagination.hasMore ? currentPage++ : null"
+                :disabled="!productsStore.pagination.hasMore"
+                class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                :class="{ 'opacity-50 cursor-not-allowed': !productsStore.pagination.hasMore }"
+              >
+                <span class="sr-only">Suivant</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                </svg>
               </button>
             </nav>
           </div>
@@ -227,7 +255,7 @@ const limit = ref(12);
 const searchCip = ref("");
 const filteredProducts = computed(() => {
   if (!searchCip.value) return productsStore.products;
-  return productsStore.products.filter((product) =>
+  return productsStore.products.filter((product: any) =>
     product.cip_code.toLowerCase().includes(searchCip.value.toLowerCase())
   );
 });
@@ -277,7 +305,7 @@ const fetchProducts = async () => {
 };
 
 const isInCart = (productId: string): boolean => {
-  return cartStore.items.some((item) => item.productId === productId);
+  return cartStore.items.some((item: any) => item.productId === productId);
 };
 
 const addToCart = (product: any) => {

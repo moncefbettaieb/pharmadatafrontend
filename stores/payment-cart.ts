@@ -17,6 +17,7 @@ export const usePaymentCartStore = defineStore('paymentCart', {
     loading: false,
     error: null as string | null,
     downloadUrls: [] as string[],
+    zipUrl: null as string | null,
     selectedFormat: 'pdf' as FileFormat
   }),
 
@@ -78,6 +79,7 @@ export const usePaymentCartStore = defineStore('paymentCart', {
       this.loading = true
       this.error = null
       this.selectedFormat = format
+      this.zipUrl = null
       
       try {
         const { $firebaseFunctions } = useNuxtApp()
@@ -92,6 +94,32 @@ export const usePaymentCartStore = defineStore('paymentCart', {
         this.downloadUrls = files
         
         return files
+      } catch (error: any) {
+        this.error = error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async getProductFilesAsZip(sessionId: string, format: FileFormat = 'json') {
+      this.loading = true
+      this.error = null
+      this.selectedFormat = format
+      
+      try {
+        const { $firebaseFunctions } = useNuxtApp()
+        if (!$firebaseFunctions) {
+          throw new Error('Firebase Functions non initialisé')
+        }
+
+        const getZipCall = httpsCallable($firebaseFunctions, 'getProductFilesAsZip')
+        const result = await getZipCall({ sessionId, format })
+        
+        const { zipUrl } = result.data as { zipUrl: string }
+        this.zipUrl = zipUrl
+        
+        return zipUrl
       } catch (error: any) {
         this.error = error.message
         throw error
