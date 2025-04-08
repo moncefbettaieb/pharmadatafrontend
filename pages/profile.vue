@@ -282,15 +282,20 @@
               </div>
             </div>
 
-            <!-- Notifications -->
-            <NotificationList
-              :notifications="notificationsStore.notifications"
-              :loading="notificationsStore.loading"
-              :error="notificationsStore.error"
-              @mark-as-read="markAsRead"
-              @delete="deleteNotification"
-              @retry="fetchNotifications"
-            />
+            <!-- Notifications - Afficher uniquement si l'onglet "notifications" est sélectionné -->
+            <div v-if="currentTab === 'notifications'">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Notifications
+              </h3>
+              <NotificationList
+                :notifications="notificationsStore.notifications"
+                :loading="notificationsStore.loading"
+                :error="notificationsStore.error"
+                @mark-as-read="markAsRead"
+                @delete="deleteNotification"
+                @retry="fetchNotifications"
+              />
+            </div>
 
             <!-- Déconnexion -->
             <div v-if="currentTab === 'logout'">

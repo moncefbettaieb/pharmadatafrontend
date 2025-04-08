@@ -241,7 +241,8 @@ const handleSubmit = async () => {
       if (authStore.verificationId) {
         await authStore.verifyPhoneCode(verificationCode.value);
         toast.success("Connexion réussie");
-        router.push("/account/api-tokens");
+        // La redirection sera gérée par le middleware auth-verified
+        // pour rediriger vers phone-email-verify si nécessaire
       } else {
         await authStore.sendPhoneVerification(phoneNumber.value);
         toast.success("Code de vérification envoyé");
