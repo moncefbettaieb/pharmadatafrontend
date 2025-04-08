@@ -6,7 +6,7 @@ import { trackApiUsage, getApiStats } from './api/stats'
 import { createProductPaymentSession} from './api/product-payment'
 import { createSubscription} from './api/subscription-payment'
 import { handleStripeWebhook} from './api/webhook'
-import { getProductFiles } from './api/product-files'
+import { getProductFiles, getProductFilesAsZip } from './api/product-files'
 import { sendSupportEmail, sendContactEmail } from './api/support'
 import { rateLimit } from './utils/rate-limit'
 import { getStripeRedirectUrl } from './api/stripe-redirect'
@@ -56,6 +56,7 @@ export {
   createProductPaymentSession,
   createSubscription,
   getProductFiles,
+  getProductFilesAsZip,
   sendSupportEmail,
   sendContactEmail,
   rateLimit,
