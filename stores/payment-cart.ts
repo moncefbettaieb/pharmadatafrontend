@@ -31,12 +31,7 @@ export const usePaymentCartStore = defineStore('paymentCart', {
           throw new Error('Firebase Functions non initialisé')
         }
 
-        const config = useRuntimeConfig()
-        if (!config.public.stripePublicKey) {
-          throw new Error('La clé publique Stripe n\'est pas configurée')
-        }
-
-        // Appeler la Cloud Function
+        // Appeler la Cloud Function pour créer la session
         const createSessionCall = httpsCallable($firebaseFunctions, 'createProductPaymentSession')
         const result = await createSessionCall({
           items: items.map(item => ({
@@ -48,12 +43,26 @@ export const usePaymentCartStore = defineStore('paymentCart', {
 
         const { sessionId } = result.data as { sessionId: string }
 
-        const stripe = await loadStripe(config.public.stripePublicKey)
+        // Obtenir la clé publique Stripe depuis la Cloud Function
+        const getStripeInfoCall = httpsCallable($firebaseFunctions, 'getStripeRedirectUrl')
+        const stripeInfoResult = await getStripeInfoCall({ sessionId })
+        
+        const stripeInfo = stripeInfoResult.data as any
+        if (!stripeInfo.publicKey || !stripeInfo.sessionId) {
+          throw new Error('Informations Stripe incomplètes')
+        }
+
+        // Initialiser Stripe avec la clé publique récupérée du serveur
+        const stripe = await loadStripe(stripeInfo.publicKey)
         if (!stripe) {
           throw new Error('Erreur lors du chargement de Stripe')
         }
 
-        const { error } = await stripe.redirectToCheckout({ sessionId })
+        // Rediriger vers la page de paiement Stripe
+        const { error } = await stripe.redirectToCheckout({ 
+          sessionId: stripeInfo.sessionId 
+        })
+        
         if (error) {
           throw error
         }

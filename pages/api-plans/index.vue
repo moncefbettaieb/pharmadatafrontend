@@ -208,7 +208,6 @@
   const plansStore = usePlansStore()
   const { user } = storeToRefs(authStore)
   const toast = useToast()
-  const config = useRuntimeConfig()
   const loading = ref(false)
   const { $firebaseFunctions } = useNuxtApp()
   const router = useRouter()
@@ -235,18 +234,7 @@
         throw new Error('Firebase Functions non initialisé')
       }
   
-      if (!config.public.stripePublicKey) {
-        console.error('Clé publique Stripe manquante dans la configuration')
-        throw new Error('Configuration Stripe manquante')
-      }
-  
-      const stripe = await loadStripe(config.public.stripePublicKey)
-      if (!stripe) {
-        throw new Error('Erreur lors du chargement de Stripe')
-      }
-  
       const createSubscriptionCall = httpsCallable($firebaseFunctions, 'createSubscription')
-      
       const result = await createSubscriptionCall({
         priceId: plan.id,
         requestsLimit: plan.requestsPerMonth,
@@ -260,7 +248,30 @@
         throw new Error('Session ID manquant dans la réponse')
       }
   
-      const { error } = await stripe.redirectToCheckout({ sessionId })
+      // Obtenir la clé publique Stripe depuis la Cloud Function
+      const getStripeInfoCall = httpsCallable($firebaseFunctions, 'getStripeRedirectUrl')
+      const stripeInfoResult = await getStripeInfoCall({ sessionId })
+      
+      if (!stripeInfoResult.data || typeof stripeInfoResult.data !== 'object') {
+        throw new Error('Réponse invalide du serveur')
+      }
+      
+      const stripeInfo = stripeInfoResult.data
+      if (!stripeInfo.publicKey || !stripeInfo.sessionId) {
+        throw new Error('Informations Stripe incomplètes')
+      }
+  
+      // Initialiser Stripe avec la clé publique récupérée du serveur
+      const stripe = await loadStripe(stripeInfo.publicKey)
+      if (!stripe) {
+        throw new Error('Erreur lors du chargement de Stripe')
+      }
+  
+      // Rediriger vers la page de paiement Stripe
+      const { error } = await stripe.redirectToCheckout({ 
+        sessionId: stripeInfo.sessionId 
+      })
+      
       if (error) {
         throw error
       }
@@ -284,11 +295,6 @@
         throw new Error('Firebase Functions non initialisé')
       }
   
-      const stripe = await loadStripe(config.public.stripePublicKey)
-      if (!stripe) {
-        throw new Error('Erreur lors du chargement de Stripe')
-      }
-  
       const createLifetimeSessionCall = httpsCallable($firebaseFunctions, 'createLifetimeSession')
       const result = await createLifetimeSessionCall({
         successUrl: `${window.location.origin}/payment/success`,
@@ -300,7 +306,30 @@
         throw new Error('Session ID manquant dans la réponse')
       }
   
-      const { error } = await stripe.redirectToCheckout({ sessionId })
+      // Obtenir la clé publique Stripe depuis la Cloud Function
+      const getStripeInfoCall = httpsCallable($firebaseFunctions, 'getStripeRedirectUrl')
+      const stripeInfoResult = await getStripeInfoCall({ sessionId })
+      
+      if (!stripeInfoResult.data || typeof stripeInfoResult.data !== 'object') {
+        throw new Error('Réponse invalide du serveur')
+      }
+      
+      const stripeInfo = stripeInfoResult.data
+      if (!stripeInfo.publicKey || !stripeInfo.sessionId) {
+        throw new Error('Informations Stripe incomplètes')
+      }
+  
+      // Initialiser Stripe avec la clé publique récupérée du serveur
+      const stripe = await loadStripe(stripeInfo.publicKey)
+      if (!stripe) {
+        throw new Error('Erreur lors du chargement de Stripe')
+      }
+  
+      // Rediriger vers la page de paiement Stripe
+      const { error } = await stripe.redirectToCheckout({ 
+        sessionId: stripeInfo.sessionId 
+      })
+      
       if (error) {
         throw error
       }

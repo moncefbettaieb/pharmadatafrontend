@@ -33,7 +33,7 @@ export const createProductPaymentSession = onCall({
 
     // Valider chaque item
     items.forEach(item => {
-      if (!item.productId || !item.title || !item.cip_code) {
+      if (!item.title || !item.cip_code) {
         throw new HttpsError('invalid-argument', 'Données de produit incomplètes')
       }
     })
