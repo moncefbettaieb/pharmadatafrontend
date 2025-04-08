@@ -432,7 +432,7 @@ export const useAuthStore = defineStore("auth", {
         case "auth/operation-not-allowed":
           return "Opération non autorisée";
         case "auth/weak-password":
-          return "Le mot de passe est trop faible";
+          return "Le mot de passe doit contenir au moins 8 caractères, incluant des minuscules et des majuscules";
         case "auth/email-not-verified":
           return "Veuillez vérifier votre adresse email";
         case "auth/user-disabled":
@@ -442,7 +442,7 @@ export const useAuthStore = defineStore("auth", {
         case "auth/wrong-password":
           return "Mot de passe incorrect";
         case "auth/invalid-password":
-          return "Le mot de passe doit être d'au moins six caractères Contenant des miniscules, des majuscule et des chiffres";
+          return "Le mot de passe doit contenir au moins 8 caractères, incluant des minuscules et des majuscules";
         case "auth/invalid-verification-code":
           return "Code de vérification invalide";
         case "auth/invalid-phone-number":
