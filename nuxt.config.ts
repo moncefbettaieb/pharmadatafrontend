@@ -36,8 +36,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     stripeSecretKey: process.env.STRIPE_SECRET_KEY,
     public: {
-      stripePublicKey:
-        "pk_test_51QRbqeIXSD1y6wP4v0cNRm1yNgm6anwIx9r1v4kx9Lqg0QWlqDH8xTzVLHPhJvburJHaW6JXhZV8wSs8t86I3WX300jFobDJHr", //TODO find solution to that
+      stripePublicKey: process.env.STRIPE_PUBLIC_KEY,
       FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
       FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
       FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
