@@ -20,8 +20,8 @@ export const sendSupportEmail = onCall({
   }
 
   const { subject, message, sessionId } = request.data
-  if (!subject || !message || !sessionId) {
-    throw new HttpsError('invalid-argument', 'Sujet, message et ID de session requis')
+  if (!subject || !message) {
+    throw new HttpsError('invalid-argument', 'Sujet et message requis')
   }
 
   const smtpHost = SMTP_HOST.value() || 'smtp.gmail.com'
@@ -38,24 +38,35 @@ export const sendSupportEmail = onCall({
     const userDoc = await db.collection('users').doc(userId).get()
     const userData = userDoc.data()
 
-    // Récupérer les informations de la session
-    const sessionDoc = await db.collection('product_payment_sessions').doc(sessionId).get()
-    if (!sessionDoc.exists) {
-      throw new HttpsError('not-found', 'Session non trouvée')
+    let sessionData: any = null
+    // Récupérer les informations de la session (si elle existe)
+    if (sessionId) {
+      console.log(`Recherche de la session: ${sessionId}`)
+      const sessionDoc = await db.collection('product_payment_sessions').doc(sessionId).get()
+      if (sessionDoc.exists) {
+        sessionData = sessionDoc.data()
+        console.log('Session trouvée:', sessionData?.status)
+      } else {
+        console.log(`Session ${sessionId} non trouvée dans la base de données`)
+      }
+    } else {
+      console.log('Aucun ID de session fourni')
     }
-    const sessionData = sessionDoc.data()
 
-    // Créer le ticket de support
+    // Créer le ticket de support même si la session n'existe pas
     const ticketRef = await db.collection('support_tickets').add({
       userId,
       userEmail: userData?.email || request.auth.token.email,
-      sessionId,
+      sessionId: sessionId || 'non-spécifié',
       subject,
       message,
       status: 'new',
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
 
+    console.log('Ticket de support créé:', ticketRef.id)
+
+    // Configuration SMTP
     const smtpConfig = {
         host: smtpHost,
         port: parseInt(smtpPort, 10),
@@ -69,14 +80,24 @@ export const sendSupportEmail = onCall({
         }
       }
 
+    console.log('Configuration SMTP:', {
+      host: smtpHost, 
+      port: smtpPort, 
+      secure: smtpSecure,
+      user: smtpUser ? 'défini' : 'non défini',
+      pass: smtpPass ? 'défini' : 'non défini'
+    })
+
     // Créer le transporteur SMTP
     const transporter = nodemailer.createTransport(smtpConfig)
 
     try {
+      console.log('Vérification de la connexion SMTP...')
       await transporter.verify()
-    } catch (error) {
+      console.log('Connexion SMTP vérifiée avec succès')
+    } catch (error: any) {
       console.error('Erreur de vérification SMTP:', error)
-      throw new Error('Erreur de connexion au serveur SMTP')
+      throw new Error('Erreur de connexion au serveur SMTP: ' + (error.message || 'Raison inconnue'))
     }
 
     // Préparer et envoyer l'email
@@ -84,16 +105,18 @@ export const sendSupportEmail = onCall({
       Nouveau ticket de support #${ticketRef.id}
       
       De: ${userData?.email || request.auth.token.email}
-      Session ID: ${sessionId}
+      Session ID: ${sessionId || 'Non spécifié'}
       Sujet: ${subject}
       
       Message:
       ${message}
       
+      ${sessionData ? `
       Détails de la session:
       - Statut: ${sessionData?.status}
-      - Créée le: ${sessionData?.createdAt.toDate().toLocaleString()}
-      - Montant: ${sessionData?.amount} €
+      - Créée le: ${sessionData?.createdAt?.toDate().toLocaleString() || 'non disponible'}
+      - Montant: ${sessionData?.amount || 'non disponible'} €
+      ` : 'Aucune information de session disponible'}
     `
 
     const mailOptions = {
@@ -103,14 +126,16 @@ export const sendSupportEmail = onCall({
       text: emailContent,
       headers: {
         'X-Ticket-ID': ticketRef.id,
-        'X-Session-ID': sessionId
+        'X-Session-ID': sessionId || 'non-specifie'
       }
     }
 
-    await transporter.sendMail(mailOptions)
+    console.log('Envoi de l\'email...')
+    const info = await transporter.sendMail(mailOptions)
+    console.log('Email envoyé avec succès', info.messageId)
 
     // Créer une notification pour l'utilisateur
-    await db.collection('notifications').add({
+    const notifRef = await db.collection('notifications').add({
       userId,
       title: 'Ticket de support créé',
       message: 'Votre message a été envoyé au support. Nous vous répondrons dans les plus brefs délais.',
@@ -119,13 +144,15 @@ export const sendSupportEmail = onCall({
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     })
 
+    console.log('Notification créée:', notifRef.id)
+
     return {
       success: true,
       ticketId: ticketRef.id
     }
-  } catch (error) {
-    console.error('Erreur lors de l\'envoi de l\'email au support:', error)
-    throw new HttpsError('internal', 'Erreur lors de l\'envoi de l\'email au support')
+  } catch (error: any) {
+    console.error('Erreur détaillée lors de l\'envoi de l\'email au support:', error)
+    throw new HttpsError('internal', 'Erreur lors de l\'envoi de l\'email au support: ' + (error.message || 'Erreur inconnue'))
   }
 })
 
