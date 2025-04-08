@@ -175,7 +175,7 @@ export const getProducts = onCall({
       .get()
 
     const products = productsSnapshot.docs.map(doc => ({
-      id: doc.id, // Ajout
+      id: doc.id,
       ...doc.data()
     })) as Product[]
     const bucketName = "pharma_images"

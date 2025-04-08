@@ -27,6 +27,7 @@ import {
   collection,
   DocumentReference,
   type DocumentData,
+  updateDoc,
 } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 
@@ -97,7 +98,6 @@ export const useAuthStore = defineStore("auth", {
             try {
               const generateTokenCall = httpsCallable($firebaseFunctions, "generateToken");
               const tokenResult = await generateTokenCall();
-              console.log("Token généré:", tokenResult);
               if (tokenResult.data && typeof tokenResult.data === "object") {
                 const { token, id } = tokenResult.data as { token: string; id: string };
                 await setDoc(doc(collection($firebaseDb, "api_usage")), {
@@ -321,7 +321,7 @@ export const useAuthStore = defineStore("auth", {
       this.error = null;
 
       try {
-        const { $firebaseAuth } = useNuxtApp();
+        const { $firebaseAuth, $firebaseDb } = useNuxtApp();
         if (!$firebaseAuth) {
           throw new Error("Firebase authentication is not initialized");
         }
@@ -332,17 +332,46 @@ export const useAuthStore = defineStore("auth", {
         );
         const userCredential = await signInWithCredential($firebaseAuth, credential);
         this.user = userCredential.user;
-
-        // Create user document only on first sign-up
-        const userDoc = await getFirestore()
-          .collection("users")
-          .doc(userCredential.user.uid)
-          .get();
-        if (!userDoc.exists) {
-          await this.createUserDocument(userCredential.user);
+        
+        // Vérifier si l'utilisateur existe déjà dans la collection users
+        const userIsNew = { value: false };
+        let needsEmail = false;
+        
+        if ($firebaseDb) {
+          const userRef = doc($firebaseDb, "users", userCredential.user.uid);
+          const userDoc = await getDoc(userRef);
+          
+          if (!userDoc.exists()) {
+            // C'est un nouvel utilisateur
+            userIsNew.value = true;
+            needsEmail = true;
+            
+            // Créer un document utilisateur minimal
+            await setDoc(userRef, {
+              phoneNumber: userCredential.user.phoneNumber,
+              createdAt: serverTimestamp(),
+              lastLoginAt: serverTimestamp(),
+              needsEmailVerification: true // Indicateur que l'utilisateur doit fournir un email
+            });
+          } else {
+            // Utilisateur existant, vérifier s'il a un email
+            const userData = userDoc.data();
+            needsEmail = !userData.email;
+            
+            // Mettre à jour la date de dernière connexion
+            await updateDoc(userRef, {
+              lastLoginAt: serverTimestamp()
+            });
+          }
         }
-
+        
         this.verificationId = null;
+        
+        return {
+          user: userCredential.user,
+          isNewUser: userIsNew.value,
+          needsEmail: needsEmail
+        };
       } catch (error: any) {
         this.error = this.getErrorMessage(error.code);
         throw error;
@@ -457,7 +486,6 @@ export const useAuthStore = defineStore("auth", {
                 await this.createUserDocument(user, true);
               }
             } else {
-              console.log("Utilisateur déconnecté");
               this.user = null;
             }
           } catch (error) {
