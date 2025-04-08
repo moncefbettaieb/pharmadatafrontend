@@ -9,6 +9,7 @@ import { handleStripeWebhook} from './api/webhook'
 import { getProductFiles } from './api/product-files'
 import { sendSupportEmail, sendContactEmail } from './api/support'
 import { rateLimit } from './utils/rate-limit'
+import { getStripeRedirectUrl } from './api/stripe-redirect'
 import { 
   getNotifications, 
   markNotificationAsRead, 
@@ -57,5 +58,6 @@ export {
   getProductFiles,
   sendSupportEmail,
   sendContactEmail,
-  rateLimit
+  rateLimit,
+  getStripeRedirectUrl
 }
