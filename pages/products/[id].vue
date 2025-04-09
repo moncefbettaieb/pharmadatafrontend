@@ -153,7 +153,7 @@
 
       try {
         cartStore.addToCart({
-          productId: product.value.id,
+          id: product.value.id,
           title: product.value.title,
           short_desc: product.value.short_desc,
           image_url: product.value.image_url,

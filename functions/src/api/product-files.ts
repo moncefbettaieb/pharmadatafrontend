@@ -416,6 +416,9 @@ export const getProductFilesAsZip = onCall({
 
     const sessionData = sessionDoc.data()
     
+    // Ajouter des logs pour le débogage
+    console.log('Session data:', JSON.stringify(sessionData, null, 2))
+    
     // Vérifier que l'utilisateur est bien le propriétaire de la session
     if (sessionData?.userId !== request.auth.uid) {
       throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
