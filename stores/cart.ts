@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-interface CartItem {
+export interface CartItem {
   productId: string;
   title: string;
   short_desc: string;
@@ -20,24 +20,24 @@ export const useCartStore = defineStore('cart', {
 
   actions: {
     addToCart(product: {
-      id: string;
+      productId: string;
       title: string;
       short_desc: string;
       image_url?: string;
       cip_code: string;
     }) {
-      if (!product.id) {
+      if (!product.productId) {
         console.error('Tentative d\'ajout d\'un produit sans ID au panier:', product);
         return;
       }
 
       const existingItem = this.items.find(
-        (item) => item.productId === product.id
+        (item) => item.productId === product.productId
       );
 
       if (!existingItem) {
         this.items.push({
-          productId: product.id,
+          productId: product.productId,
           title: product.title,
           short_desc: product.short_desc,
           image_url: product.image_url,

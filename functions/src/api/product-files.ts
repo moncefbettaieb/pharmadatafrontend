@@ -68,12 +68,7 @@ export const getProductFiles = onCall({
     if (!sessionDoc.exists) {
       throw new HttpsError('not-found', 'Session de paiement non trouvée')
     }
-
     const sessionData = sessionDoc.data()
-    
-    // Ajouter des logs pour le débogage
-    console.log('Session data:', JSON.stringify(sessionData, null, 2))
-    
     // Vérifier que l'utilisateur est bien le propriétaire de la session
     if (sessionData?.userId !== request.auth.uid) {
       throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
@@ -86,9 +81,6 @@ export const getProductFiles = onCall({
 
     // Récupérer les données des produits
     const productIds = sessionData.items.map((item: any) => item.productId)
-    
-    // Log des IDs de produits
-    console.log('Product IDs:', productIds)
     
     // Vérifier si les IDs des produits sont valides
     if (!productIds || productIds.length === 0) {
@@ -424,9 +416,6 @@ export const getProductFilesAsZip = onCall({
 
     const sessionData = sessionDoc.data()
     
-    // Ajouter des logs pour le débogage
-    console.log('Session data:', JSON.stringify(sessionData, null, 2))
-    
     // Vérifier que l'utilisateur est bien le propriétaire de la session
     if (sessionData?.userId !== request.auth.uid) {
       throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
@@ -439,9 +428,6 @@ export const getProductFilesAsZip = onCall({
 
     // Récupérer les données des produits
     const productIds = sessionData.items.map((item: any) => item.productId)
-    
-    // Log des IDs de produits
-    console.log('Product IDs:', productIds)
     
     // Vérifier si les IDs des produits sont valides
     if (!productIds || productIds.length === 0) {

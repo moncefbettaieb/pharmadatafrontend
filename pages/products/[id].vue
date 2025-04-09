@@ -122,6 +122,7 @@
     import { useCartStore } from '~/stores/cart'
     import { useToast } from 'vue-toastification'
     import type { Product } from '~/types/product'
+    import type { CartItem } from '~/stores/cart'
     
     const route = useRoute()
     const productsStore = useProductsStore()
@@ -134,19 +135,35 @@
     const currentImage = ref<string | null>(null)
     
     const isInCart = computed(() => {
-      return product.value ? cartStore.items.some((item: { productId: string }) => item.productId === product.value?.id) : false
+      if (!product.value) return false
+      return cartStore.items.some((item: CartItem) => item.productId === product.value?.id)
     })
     
     const addToCart = () => {
-      if (product.value && !isInCart.value) {
+      if (!product.value) {
+        toast.error('Produit non disponible');
+        return;
+      }
+
+      const existingProduct = cartStore.items.find((item: CartItem) => item.productId === product.value?.id);
+      if (existingProduct) {
+        toast.warning('Ce produit est déjà dans votre panier');
+        return;
+      }
+
+      try {
         cartStore.addToCart({
-          id: product.value.id,
+          productId: product.value.id,
           title: product.value.title,
           short_desc: product.value.short_desc,
           image_url: product.value.image_url,
-          cip_code: product.value.cip_code
-        })
-        toast.success('Fiche produit ajoutée au panier')
+          cip_code: product.value.cip_code,
+        });
+
+        toast.success('Produit ajouté au panier');
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout au panier:', error);
+        toast.error('Erreur lors de l\'ajout au panier');
       }
     }
     

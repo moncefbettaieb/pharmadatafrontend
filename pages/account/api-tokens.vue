@@ -623,23 +623,33 @@ curl -X GET \
 import { ref, onMounted, watch } from 'vue'
 import { useApiStore } from "~/stores/api";
 import { useToast } from "vue-toastification";
-import { read, utils } from "xlsx";
+import { read, utils, type WorkBook } from "xlsx";
 import Papa from "papaparse";
+import { getFirestore, collection, query, where, getDocs, writeBatch, doc, serverTimestamp, type DocumentData, orderBy, limit } from "firebase/firestore";
+import { useAuthStore } from "~/stores/auth";
+
+interface SearchResult {
+  cip_code: string;
+  title: string;
+  brand: string;
+  status: string;
+  last_update: string | null;
+  fullData: Record<string, unknown>;
+  fromCache?: boolean;
+}
+
+interface ProcessedResult {
+  results: SearchResult[];
+  errors: string[];
+}
 
 const apiStore = useApiStore();
+const authStore = useAuthStore();
 const toast = useToast();
 
 const currentTab = ref("token");
 const loading = ref(false);
-const results = ref<
-  Array<{
-    cip_code: string;
-    title: string;
-    brand: string;
-    status: string;
-    last_update: any;
-  }>
->([]);
+const results = ref<SearchResult[]>([]);
 
 const tabs = [
   { id: "token", name: "Token API et Utilisation" },
@@ -648,15 +658,56 @@ const tabs = [
 
 const expandedIndex = ref<number | null>(null);
 
-// Fonction pour copier
-function copyToClipboard(content: string) {
-  navigator.clipboard.writeText(content);
-  toast.info("Contenu copié au presse-papier");
-}
+// Fonction pour charger l'historique des recherches
+const loadSearchHistory = async () => {
+  try {
+    loading.value = true;
+    const db = getFirestore();
+    const resultsRef = collection(db, 'api_search_history');
+    const userId = authStore.user?.uid;
+    
+    const q = query(
+      resultsRef,
+      where('userId', '==', userId),
+      orderBy('searchDate', 'desc'),
+      limit(50)
+    );
+
+    const snapshot = await getDocs(q);
+    results.value = snapshot.docs.map((doc: DocumentData) => {
+      const data = doc.data();
+      return {
+        cip_code: data.cip_code,
+        title: data.title,
+        brand: data.brand,
+        status: data.status,
+        last_update: data.last_update,
+        fullData: data.fullData,
+        fromCache: true
+      } as SearchResult;
+    });
+  } catch (error) {
+    console.error('Erreur lors du chargement de l\'historique:', error);
+    toast.error('Erreur lors du chargement de l\'historique');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Observer le changement d'onglet
+watch(currentTab, async (newTab: string) => {
+  if (newTab === 'import' && results.value.length === 0) {
+    await loadSearchHistory();
+  }
+});
 
 onMounted(async () => {
   try {
-    await Promise.all([apiStore.fetchUsage(), apiStore.fetchTokenHistory()]);
+    await Promise.all([
+      apiStore.fetchUsage(), 
+      apiStore.fetchTokenHistory(),
+      currentTab.value === 'import' ? loadSearchHistory() : Promise.resolve()
+    ]);
 
     // Générer automatiquement un token si l'utilisateur n'en a pas
     if (!apiStore.token) {
@@ -702,268 +753,267 @@ const copyRequest = () => {
 };
 
 const handleFileUpload = async (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0];
-  if (!file) return;
+  const target = event.target as HTMLInputElement;
+  if (!target.files?.length) {
+    toast.error('Aucun fichier sélectionné');
+    return;
+  }
 
-  const fileType = file.name.split(".").pop()?.toLowerCase();
-  let cipCodes: string[] = [];
+  const file = target.files[0];
   loading.value = true;
+  results.value = []; // Reset results
 
   try {
-    // Traitement selon le type de fichier
-    if (fileType === "xlsx" || fileType === "xls") {
-      // Traitement des fichiers Excel
-      const data = await readExcelFile(file);
-      cipCodes = extractCipCodesFromData(data);
-    } else if (fileType === "csv") {
-      // Traitement des fichiers CSV
-      const data = await readCsvFile(file);
-      cipCodes = extractCipCodesFromData(data);
-    } else if (fileType === "json") {
-      // Traitement des fichiers JSON
-      const content = await readTextFile(file);
-      try {
-        const jsonData = JSON.parse(content);
-        cipCodes = extractCipCodesFromJson(jsonData);
-      } catch (error) {
-        throw new Error("Format JSON invalide");
-      }
-    } else if (fileType === "txt") {
-      // Traitement des fichiers texte
-      const content = await readTextFile(file);
-      cipCodes = content
-        .split(/[\n,]/)
-        .map((code) => code.trim())
-        .filter(Boolean);
-    } else {
-      throw new Error("Format de fichier non supporté");
+    let cipCodes: string[] = [];
+
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const workbook = await readFileAsWorkbook(file);
+      cipCodes = extractCipCodes(workbook);
+    } else if (file.name.endsWith('.csv')) {
+      const text = await file.text();
+      const parsed = Papa.parse(text, { header: true });
+      cipCodes = extractCipCodesFromParsedData(parsed.data);
+    } else if (file.name.endsWith('.txt')) {
+      const text = await file.text();
+      cipCodes = text.split(/[\n,]/).map(code => code.trim()).filter(Boolean);
+    } else if (file.name.endsWith('.json')) {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      cipCodes = extractCipCodesFromJson(data);
     }
 
     if (cipCodes.length === 0) {
-      toast.error("Aucun code CIP trouvé dans le fichier");
-      loading.value = false;
+      toast.error('Aucun code CIP trouvé dans le fichier');
       return;
     }
 
-    // Traitement des codes CIP
-    await processCipCodes(cipCodes);
-
-    toast.success(
-      `Import terminé : ${
-        results.value.filter((r) => r.status === "success").length
-      } produits trouvés sur ${cipCodes.length} codes CIP`
-    );
+    const processResult = await processCipCodes(cipCodes);
+    if (processResult.errors.length > 0) {
+      processResult.errors.forEach(error => toast.error(error));
+    }
+    
+    const successCount = processResult.results.filter(r => r.status === 'success').length;
+    const errorCount = processResult.results.filter(r => r.status === 'error').length;
+    
+    toast.info(`Traitement terminé: ${successCount} produits trouvés, ${errorCount} non trouvés`);
+    
   } catch (error) {
-    console.error("Erreur lors de la lecture du fichier:", error);
-    toast.error(
-      `Erreur lors de la lecture du fichier: ${
-        error instanceof Error ? error.message : "Erreur inconnue"
-      }`
-    );
+    console.error('Erreur lors du traitement du fichier:', error);
+    toast.error(error instanceof Error ? error.message : 'Erreur lors du traitement du fichier');
   } finally {
     loading.value = false;
-    // Réinitialiser l'input file
-    const input = event.target as HTMLInputElement;
-    input.value = "";
   }
 };
 
-// Fonction pour lire un fichier Excel
-const readExcelFile = (file: File): Promise<any[]> => {
+const readFileAsWorkbook = (file: File): Promise<WorkBook> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (r: ProgressEvent<FileReader>) => {
       try {
-        const data = e.target?.result;
-        const workbook = read(data, { type: "binary" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = utils.sheet_to_json(worksheet);
-        resolve(jsonData);
+        const data = r.target?.result;
+        const workbook = read(data, { type: 'binary' });
+        resolve(workbook);
       } catch (error) {
-        reject(new Error("Erreur lors de la lecture du fichier Excel"));
+        reject(new Error('Erreur lors de la lecture du fichier'));
       }
     };
-    reader.onerror = () =>
-      reject(new Error("Erreur lors de la lecture du fichier"));
+    reader.onerror = () => reject(new Error('Erreur lors de la lecture du fichier'));
     reader.readAsBinaryString(file);
   });
 };
 
-// Fonction pour lire un fichier CSV
-const readCsvFile = (file: File): Promise<any[]> => {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true,
-      complete: (results) => {
-        resolve(results.data);
-      },
-      error: (error) => {
-        reject(new Error(`Erreur lors de la lecture du CSV: ${error.message}`));
-      },
-    });
-  });
-};
-
-// Fonction pour lire un fichier texte
-const readTextFile = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      resolve(e.target?.result as string);
-    };
-    reader.onerror = () =>
-      reject(new Error("Erreur lors de la lecture du fichier"));
-    reader.readAsText(file);
-  });
-};
-
-// Extraire les codes CIP à partir de données structurées (Excel ou CSV)
-const extractCipCodesFromData = (data: any[]): string[] => {
+const extractCipCodes = (workbook: WorkBook): string[] => {
   const cipCodes: string[] = [];
 
-  // Chercher les codes CIP dans différentes colonnes possibles
-  const possibleColumns = [
-    "cip",
-    "code_cip",
-    "cip_code",
-    "code",
-    "cip13",
-    "cip7",
-  ];
+  workbook.SheetNames.forEach((sheetName: string) => {
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = utils.sheet_to_json(worksheet) as unknown[];
+    jsonData.forEach((row: unknown) => {
+      let cipCode = null;
+      const rowData = row as Record<string, unknown>;
 
-  data.forEach((row) => {
-    let cipCode = null;
-
-    // Vérifier chaque colonne possible
-    for (const column of possibleColumns) {
-      if (row[column]) {
-        cipCode = String(row[column]).trim();
-        break;
+      // Vérifier chaque colonne possible
+      for (const column of ["cip", "code_cip", "cip_code", "code", "cip13", "cip7"]) {
+        if (rowData[column]) {
+          cipCode = String(rowData[column]).trim();
+          break;
+        }
       }
-    }
 
-    // Si aucune colonne trouvée, chercher dans la première colonne disponible
-    if (!cipCode && Object.keys(row).length > 0) {
-      const firstColumn = Object.keys(row)[0];
-      cipCode = String(row[firstColumn]).trim();
-    }
-
-    // Ajouter le code CIP s'il est valide
-    if (cipCode && cipCode.length > 0) {
-      cipCodes.push(cipCode);
-    }
+      if (cipCode) {
+        cipCodes.push(cipCode);
+      }
+    });
   });
 
   return cipCodes;
 };
 
-// Extraire les codes CIP à partir de données JSON
-const extractCipCodesFromJson = (jsonData: any): string[] => {
+const extractCipCodesFromParsedData = (data: any[]): string[] => {
   const cipCodes: string[] = [];
+  for (const row of data) {
+    for (const key of ['cip', 'code_cip', 'cip_code', 'code', 'cip13', 'cip7']) {
+      if (row[key]) {
+        const code = String(row[key]).trim();
+        if (code) cipCodes.push(code);
+        break;
+      }
+    }
+  }
+  return cipCodes;
+};
 
-  // Si le JSON est un tableau
-  if (Array.isArray(jsonData)) {
-    jsonData.forEach((item) => {
-      if (typeof item === "string") {
-        // Si c'est un tableau de strings
+const extractCipCodesFromJson = (data: any): string[] => {
+  const cipCodes: string[] = [];
+  
+  if (Array.isArray(data)) {
+    data.forEach(item => {
+      if (typeof item === 'string') {
         cipCodes.push(item.trim());
-      } else if (typeof item === "object" && item !== null) {
-        // Si c'est un tableau d'objets
-        const possibleFields = [
-          "cip",
-          "code_cip",
-          "cip_code",
-          "code",
-          "cip13",
-          "cip7",
-        ];
-        for (const field of possibleFields) {
-          if (item[field]) {
-            cipCodes.push(String(item[field]).trim());
+      } else if (typeof item === 'object' && item !== null) {
+        for (const key of ['cip', 'code_cip', 'cip_code', 'code', 'cip13', 'cip7']) {
+          if (item[key]) {
+            cipCodes.push(String(item[key]).trim());
             break;
           }
         }
       }
     });
-  } else if (typeof jsonData === "object" && jsonData !== null) {
-    // Si le JSON est un objet avec une propriété qui contient un tableau
-    const possibleArrayFields = [
-      "cips",
-      "codes",
-      "cipCodes",
-      "products",
-      "data",
-      "items",
-    ];
-    for (const field of possibleArrayFields) {
-      if (Array.isArray(jsonData[field])) {
-        return extractCipCodesFromJson(jsonData[field]);
+  } else if (typeof data === 'object' && data !== null) {
+    for (const key of ['cip', 'code_cip', 'cip_code', 'code', 'cip13', 'cip7']) {
+      if (data[key]) {
+        cipCodes.push(String(data[key]).trim());
+        break;
       }
     }
-
-    // Parcourir toutes les propriétés de l'objet
-    Object.values(jsonData).forEach((value) => {
-      if (typeof value === "string") {
-        cipCodes.push(value.trim());
-      }
-    });
   }
-
-  return cipCodes.filter(Boolean);
+  
+  return cipCodes;
 };
 
-// Traiter les codes CIP
-const processCipCodes = async (cipCodes: string[]) => {
-  results.value = [];
+const processCipCodes = async (cipCodes: string[]): Promise<ProcessedResult> => {
+  try {
+    const { cached, newCodes } = await getCachedResults(cipCodes);
+    
+    // Ajouter les résultats en cache à results
+    cached.forEach(result => {
+      results.value.push(result);
+    });
+    
+    if (newCodes.length > 0) {
+      // Appeler l'API pour chaque code CIP
+      const newResults = await Promise.all(
+        newCodes.map(async (cipCode) => {
+          try {
+            const response = await fetch(
+              `https://fournisseur-data.firebaseapp.com/api/v1/products/${cipCode}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${apiStore.token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
 
-  const { $firebaseFunctions } = useNuxtApp();
-  if (!$firebaseFunctions) throw new Error("Firebase Functions non initialisé");
-
-  // Traiter par lot de 10 pour éviter de surcharger le serveur
-  const batchSize = 10;
-  for (let i = 0; i < cipCodes.length; i += batchSize) {
-    const batch = cipCodes.slice(i, i + batchSize);
-    await Promise.all(
-      batch.map(async (cipCode) => {
-        try {
-          const result = await fetch(
-            "https://fournisseur-data.firebaseapp.com/api/v1/products/" +
-              cipCode,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${apiStore.token}`,
-                "Content-Type": "application/json",
-              },
+            if (!response.ok) {
+              throw new Error("Erreur lors de la récupération du produit");
             }
-          );
-          // Vérifier si la réponse est correcte
-          if (!result.ok) {
-            throw new Error("Erreur lors de la récupération du produit");
+
+            const product = await response.json();
+            return {
+              cip_code: cipCode,
+              title: product.title,
+              brand: product.brand,
+              status: "success",
+              last_update: product.last_update,
+              fullData: product
+            } as SearchResult;
+          } catch (error) {
+            return {
+              cip_code: cipCode,
+              title: "-",
+              brand: "-",
+              status: "error",
+              last_update: null,
+              fullData: {}
+            } as SearchResult;
           }
-          const product = await result.json();
-          results.value.push({
-            cip_code: cipCode,
-            title: product.title,
-            brand: product.brand,
-            status: "success",
-            last_update: product.last_update,
-            fullData: product,
-          });
-        } catch (error) {
-          results.value.push({
-            cip_code: cipCode,
-            title: "-",
-            brand: "-",
-            status: "Non Trouvé",
-            last_update: null,
-            fullData: "-",
-          });
-        }
-      })
-    );
+        })
+      );
+
+      await saveResults(newResults);
+      results.value.push(...newResults);
+    }
+    
+    return {
+      results: results.value,
+      errors: []
+    };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+    return {
+      results: [],
+      errors: [errorMessage]
+    };
   }
+};
+
+const getCachedResults = async (cipCodes: string[]) => {
+  const db = getFirestore();
+  const resultsRef = collection(db, 'api_search_history');
+  const userId = authStore.user?.uid;
+  
+  const cachedResults = new Map<string, SearchResult>();
+  const newCipCodes = new Set(cipCodes);
+
+  // Récupérer les résultats existants
+  const q = query(
+    resultsRef,
+    where('userId', '==', userId),
+    where('cip_code', 'in', cipCodes)
+  );
+
+  const snapshot = await getDocs(q);
+  snapshot.forEach((doc: DocumentData) => {
+    const data = doc.data();
+    cachedResults.set(data.cip_code, {
+      ...data,
+      fromCache: true
+    });
+    newCipCodes.delete(data.cip_code);
+  });
+
+  return {
+    cached: cachedResults,
+    newCodes: Array.from(newCipCodes)
+  };
+};
+
+const saveResults = async (newResults: SearchResult[]) => {
+  const db = getFirestore();
+  const resultsRef = collection(db, 'api_search_history');
+  const userId = authStore.user?.uid;
+
+  const batch = writeBatch(db);
+  
+  newResults.forEach(result => {
+    if (result.status === 'success') {
+      const docRef = doc(resultsRef);
+      batch.set(docRef, {
+        userId,
+        cip_code: result.cip_code,
+        title: result.title,
+        brand: result.brand,
+        status: result.status,
+        last_update: result.last_update,
+        fullData: result.fullData,
+        searchDate: serverTimestamp()
+      });
+    }
+  });
+
+  await batch.commit();
 };
 
 const formatDate = (dateString: string) => {
@@ -982,6 +1032,11 @@ const formatDateTime = (dateString: string) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const copyToClipboard = (content: string) => {
+  navigator.clipboard.writeText(content);
+  toast.info("Contenu copié au presse-papier");
 };
 
 definePageMeta({

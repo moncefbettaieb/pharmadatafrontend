@@ -41,16 +41,14 @@ export const sendSupportEmail = onCall({
     let sessionData: any = null
     // Récupérer les informations de la session (si elle existe)
     if (sessionId) {
-      console.log(`Recherche de la session: ${sessionId}`)
       const sessionDoc = await db.collection('product_payment_sessions').doc(sessionId).get()
       if (sessionDoc.exists) {
         sessionData = sessionDoc.data()
-        console.log('Session trouvée:', sessionData?.status)
       } else {
-        console.log(`Session ${sessionId} non trouvée dans la base de données`)
+        console.warn(`Session ${sessionId} non trouvée dans la base de données`)
       }
     } else {
-      console.log('Aucun ID de session fourni')
+      console.warn('Aucun ID de session fourni')
     }
 
     // Créer le ticket de support même si la session n'existe pas
