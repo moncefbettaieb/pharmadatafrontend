@@ -245,6 +245,8 @@
 import { useProductsStore } from "~/stores/products";
 import { useCartStore } from "~/stores/cart";
 import { useToast } from "vue-toastification";
+import type { Product } from "~/types/product";
+import type { CartItem } from "~/stores/cart";
 
 const productsStore = useProductsStore();
 const cartStore = useCartStore();
@@ -305,17 +307,24 @@ const fetchProducts = async () => {
 };
 
 const isInCart = (productId: string): boolean => {
-  return cartStore.items.some((item: any) => item.productId === productId);
+  return cartStore.items.some((item: CartItem) => item.productId === productId);
 };
 
-const addToCart = (product: any) => {
+const addToCart = (product: Product) => {
   if (!isInCart(product.id)) {
-    cartStore.addToCart({
-      ...product,
-      price: 0.7,
-      quantity: 1,
-    });
-    toast.success("Fiche produit ajoutée au panier");
+    try {
+      cartStore.addToCart({
+        productId: product.id,
+        title: product.title,
+        short_desc: product.short_desc,
+        image_url: product.image_url,
+        cip_code: product.cip_code,
+      });
+      toast.success("Fiche produit ajoutée au panier");
+    } catch (error) {
+      console.error("Erreur lors de l'ajout au panier:", error);
+      toast.error("Erreur lors de l'ajout au panier");
+    }
   }
 };
 

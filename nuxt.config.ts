@@ -68,7 +68,8 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-04-04",
 
   plugins: [
-    '~/plugins/firebase.client.ts'
+    '~/plugins/firebase.client.ts',
+    '~/plugins/toast.client.ts'
   ],
   ssr: false,
 
