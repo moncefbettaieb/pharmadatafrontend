@@ -32,10 +32,20 @@ export const usePaymentCartStore = defineStore('paymentCart', {
           throw new Error('Firebase Functions non initialisé')
         }
 
+        // Filtrer les items invalides
+        const validItems = items.filter(item => item.productId)
+        if (validItems.length === 0) {
+          throw new Error('Aucun produit valide dans le panier')
+        }
+
+        if (validItems.length !== items.length) {
+          console.warn(`${items.length - validItems.length} produit(s) invalide(s) ont été retirés du panier`)
+        }
+
         // Appeler la Cloud Function pour créer la session
         const createSessionCall = httpsCallable($firebaseFunctions, 'createProductPaymentSession')
         const result = await createSessionCall({
-          items: items.map(item => ({
+          items: validItems.map(item => ({
             productId: item.productId,
             title: item.title,
             cip_code: item.cip_code
