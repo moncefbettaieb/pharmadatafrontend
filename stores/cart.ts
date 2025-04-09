@@ -26,6 +26,11 @@ export const useCartStore = defineStore('cart', {
       image_url?: string;
       cip_code: string;
     }) {
+      if (!product.id) {
+        console.error('Tentative d\'ajout d\'un produit sans ID au panier:', product);
+        return;
+      }
+
       const existingItem = this.items.find(
         (item) => item.productId === product.id
       );

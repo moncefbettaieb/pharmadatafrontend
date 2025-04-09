@@ -32,6 +32,16 @@ service cloud.firestore {
       allow write: if isCloudFunction();
     }
 
+    // Règles pour la collection user_purchases
+    match /user_purchases/{purchaseId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isCloudFunction()
+      );
+      allow create: if isCloudFunction();
+      allow update: if isCloudFunction();
+      allow delete: if isCloudFunction();
+    }
+
     // Règles pour les autres collections
     match /{document=**} {
       allow read: if isCloudFunction();

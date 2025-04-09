@@ -71,6 +71,9 @@ export const getProductFiles = onCall({
 
     const sessionData = sessionDoc.data()
     
+    // Ajouter des logs pour le débogage
+    console.log('Session data:', JSON.stringify(sessionData, null, 2))
+    
     // Vérifier que l'utilisateur est bien le propriétaire de la session
     if (sessionData?.userId !== request.auth.uid) {
       throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
@@ -83,6 +86,22 @@ export const getProductFiles = onCall({
 
     // Récupérer les données des produits
     const productIds = sessionData.items.map((item: any) => item.productId)
+    
+    // Log des IDs de produits
+    console.log('Product IDs:', productIds)
+    
+    // Vérifier si les IDs des produits sont valides
+    if (!productIds || productIds.length === 0) {
+      throw new HttpsError('invalid-argument', 'Aucun produit trouvé dans la session')
+    }
+
+    // Vérifier que tous les IDs sont non-vides et les logger individuellement
+    const invalidIds = productIds.filter((id: string) => !id)
+    if (invalidIds.length > 0) {
+      console.error('IDs invalides détectés:', invalidIds)
+      throw new HttpsError('invalid-argument', `ID de produit invalide détecté: ${invalidIds.join(', ')}`)
+    }
+
     const productsData = await Promise.all(
       productIds.map(async (productId: string) => {
         const productDoc = await db.collection('pharma_products').doc(productId).get()
@@ -337,6 +356,28 @@ export const getProductFiles = onCall({
       })
     )
 
+    const purchaseHistory = {
+      userId: request.auth.uid,
+      sessionId,
+      purchaseDate: new Date().toISOString(),
+      format,
+      files: files.map((url, index) => ({
+        url,
+        productId: productIds[index],
+        format,
+        fileName: `${productsData[index].cip_code}.${format}`,
+        productData: {
+          title: productsData[index].title,
+          cip_code: productsData[index].cip_code
+        }
+      })),
+      totalFiles: files.length,
+      status: 'completed'
+    }
+
+    // Sauvegarder l'historique
+    await db.collection('user_purchases').add(purchaseHistory)
+
     return { files }
   } catch (error) {
     console.error('Erreur lors de la génération des fichiers:', error)
@@ -383,6 +424,9 @@ export const getProductFilesAsZip = onCall({
 
     const sessionData = sessionDoc.data()
     
+    // Ajouter des logs pour le débogage
+    console.log('Session data:', JSON.stringify(sessionData, null, 2))
+    
     // Vérifier que l'utilisateur est bien le propriétaire de la session
     if (sessionData?.userId !== request.auth.uid) {
       throw new HttpsError('permission-denied', 'Accès non autorisé à cette session')
@@ -395,6 +439,22 @@ export const getProductFilesAsZip = onCall({
 
     // Récupérer les données des produits
     const productIds = sessionData.items.map((item: any) => item.productId)
+    
+    // Log des IDs de produits
+    console.log('Product IDs:', productIds)
+    
+    // Vérifier si les IDs des produits sont valides
+    if (!productIds || productIds.length === 0) {
+      throw new HttpsError('invalid-argument', 'Aucun produit trouvé dans la session')
+    }
+
+    // Vérifier que tous les IDs sont non-vides et les logger individuellement
+    const invalidIds = productIds.filter((id: string) => !id)
+    if (invalidIds.length > 0) {
+      console.error('IDs invalides détectés:', invalidIds)
+      throw new HttpsError('invalid-argument', `ID de produit invalide détecté: ${invalidIds.join(', ')}`)
+    }
+
     const productsData = await Promise.all(
       productIds.map(async (productId: string) => {
         const productDoc = await db.collection('pharma_products').doc(productId).get()
@@ -522,6 +582,20 @@ export const getProductFilesAsZip = onCall({
       expires: Date.now() + 24 * 60 * 60 * 1000 // 24 heures
     })
     
+    const zipPurchaseHistory = {
+      userId: request.auth.uid,
+      sessionId,
+      purchaseDate: new Date().toISOString(),
+      format,
+      zipUrl,
+      productsData,
+      totalFiles: productsData.length,
+      status: 'completed'
+    }
+
+    // Sauvegarder l'historique du ZIP
+    await db.collection('user_purchases').add(zipPurchaseHistory)
+
     return { zipUrl }
   } catch (error) {
     console.error('Erreur lors de la génération du ZIP:', error)

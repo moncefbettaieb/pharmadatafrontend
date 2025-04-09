@@ -254,6 +254,97 @@
                 </form>
               </div>
             </div>
+            <!-- Fiches achetées -->
+            <div v-if="currentTab === 'purchased'" class="space-y-6">
+              <h3 class="text-lg font-medium text-gray-900">
+                Mes fiches achetées
+              </h3>
+
+              <div v-if="loadingPurchases" class="text-center py-4">
+                <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+                <p class="mt-2 text-gray-600">Chargement de vos fiches...</p>
+              </div>
+
+              <div v-else-if="purchaseError" class="text-red-600">
+                {{ purchaseError }}
+              </div>
+
+              <div v-else-if="purchases.length === 0" class="text-center py-4 text-gray-500">
+                Vous n'avez pas encore acheté de fiches produits.
+              </div>
+
+              <div v-else class="space-y-8">
+                <div v-for="purchase in purchases" :key="purchase.id" class="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div class="px-4 py-5 sm:px-6 bg-gray-50">
+                    <h4 class="text-lg font-medium text-gray-900">
+                      Achat du {{ new Date(purchase.purchaseDate).toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) }}
+                    </h4>
+                    <p class="mt-1 text-sm text-gray-500">
+                      Format: {{ purchase.format.toUpperCase() }} - {{ purchase.totalFiles }} fichier(s)
+                    </p>
+                  </div>
+
+                  <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                    <!-- Si c'est un ZIP -->
+                    <div v-if="purchase.zipUrl" class="mb-4">
+                      <a
+                        :href="purchase.zipUrl"
+                        target="_blank"
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700"
+                        :download="`fiches-produits.${purchase.format}.zip`"
+                      >
+                        <svg class="mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Télécharger l'archive ZIP
+                      </a>
+                    </div>
+
+                    <!-- Liste des fichiers individuels -->
+                    <div v-else class="space-y-4">
+                      <div v-for="file in purchase.files" :key="file.productId" class="flex justify-between items-center py-2">
+                        <div class="flex-1">
+                          <h5 class="text-sm font-medium text-gray-900">
+                            {{ file.productData?.title || file.fileName }}
+                          </h5>
+                          <p class="text-sm text-gray-500">
+                            {{ file.productData?.cip_code ? `CIP: ${file.productData.cip_code}` : file.fileName }}
+                          </p>
+                        </div>
+                        <a
+                          :href="file.url"
+                          target="_blank"
+                          class="ml-4 inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                          :download="file.fileName"
+                        >
+                          Télécharger
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pagination si nécessaire -->
+              <div v-if="totalPages > 1" class="flex justify-center mt-6 space-x-2">
+                <button
+                  v-for="page in totalPages"
+                  :key="page"
+                  @click="currentPurchasePage = page"
+                  class="px-3 py-1 rounded"
+                  :class="currentPurchasePage === page ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700'"
+                >
+                  {{ page }}
+                </button>
+              </div>
+            </div>
+
             <!-- Contact -->
             <div v-if="currentTab === 'contact'" class="mt-6">
               <ContactForm />
@@ -342,12 +433,13 @@
 <script setup>
 import NotificationList from "~/components/NotificationList.vue";
 import ContactForm from "~/components/ContactForm.vue";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useAuthStore } from "~/stores/auth";
 import { useApiStore } from "~/stores/api";
 import { useNotificationsStore } from "~/stores/notifications";
 import { useToast } from "vue-toastification";
 import { useRouter } from "#app";
+import { getFirestore, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 
 const authStore = useAuthStore();
 const apiStore = useApiStore();
@@ -360,6 +452,7 @@ const currentTab = ref("personal");
 
 const tabs = [
   { id: "personal", name: "Informations personnelles" },
+  { id: "purchased", name: "Fiches achetées" },
   { id: "contact", name: "Contact" },
   { id: "stats", name: "Statistiques" },
   { id: "notifications", name: "Notifications" },
@@ -385,6 +478,13 @@ const passwordData = ref({
   currentPassword: "",
   newPassword: "",
 });
+
+const loadingPurchases = ref(false)
+const purchaseError = ref(null)
+const purchases = ref([])
+const currentPurchasePage = ref(1)
+const purchasesPerPage = 5
+const totalPages = computed(() => Math.ceil(purchases.value.length / purchasesPerPage))
 
 const updateProfile = async () => {
   loading.value = true;
@@ -466,9 +566,36 @@ const deleteNotification = async (id) => {
   }
 };
 
+const fetchPurchases = async () => {
+  loadingPurchases.value = true
+  purchaseError.value = null
+  try {
+    const db = getFirestore()
+    const purchasesRef = collection(db, 'user_purchases')
+    const q = query(
+      purchasesRef,
+      where('userId', '==', authStore.user?.uid),
+      orderBy('purchaseDate', 'desc')
+    )
+    
+    const snapshot = await getDocs(q)
+    purchases.value = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  } catch (error) {
+    console.error('Erreur lors du chargement des achats:', error)
+    purchaseError.value = "Erreur lors du chargement de vos fiches achetées"
+    toast.error(purchaseError.value)
+  } finally {
+    loadingPurchases.value = false
+  }
+}
+
 onMounted(() => {
   apiStore.fetchUsage();
   notificationsStore.fetchNotifications();
+  fetchPurchases();
 });
 
 definePageMeta({ middleware: ['auth-verified'] });

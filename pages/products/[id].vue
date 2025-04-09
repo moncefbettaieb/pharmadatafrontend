@@ -134,19 +134,17 @@
     const currentImage = ref<string | null>(null)
     
     const isInCart = computed(() => {
-      return product.value ? cartStore.items.some(item => item.productId === product.value?.id) : false
+      return product.value ? cartStore.items.some((item: { productId: string }) => item.productId === product.value?.id) : false
     })
     
     const addToCart = () => {
       if (product.value && !isInCart.value) {
         cartStore.addToCart({
-          productId: product.value.id,
+          id: product.value.id,
           title: product.value.title,
           short_desc: product.value.short_desc,
           image_url: product.value.image_url,
-          cip_code: product.value.cip_code,
-          price: 0.7,
-          quantity: 1
+          cip_code: product.value.cip_code
         })
         toast.success('Fiche produit ajoutée au panier')
       }
@@ -158,7 +156,7 @@
         const productId = route.params.id as string
         product.value = await productsStore.getProductById(productId)
         
-        if (product.value?.images?.length > 0) {
+        if (product.value?.images && Array.isArray(product.value.images) && product.value.images.length > 0) {
           currentImage.value = product.value.images[0]
         } else if (product.value?.image_url) {
           currentImage.value = product.value.image_url
