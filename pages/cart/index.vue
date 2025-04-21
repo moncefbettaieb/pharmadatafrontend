@@ -58,33 +58,39 @@
 
         <!-- Résumé -->
         <div class="mt-8 border-t border-gray-200 pt-8">
-          <div class="flex justify-between text-base font-medium text-gray-900">
-            <p>Total</p>
-            <p>{{ (cartStore.items.length * 0.70).toFixed(2) }}€</p>
-          </div>
-          <p class="mt-0.5 text-sm text-gray-500">TVA incluse.</p>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <!-- Informations de prix -->
+            <div class="flex-1">
+              <div class="flex justify-between text-base font-medium text-gray-900">
+                <p>Total</p>
+                <p>{{ (cartStore.items.length * 0.70).toFixed(2) }}€</p>
+              </div>
+              <p class="mt-0.5 text-sm text-gray-500">TVA incluse.</p>
+            </div>
 
-          <div class="mt-6 w-full">
-            <template v-if="authStore.user">
-              <button
-                @click="proceedToCheckout"
-                :disabled="paymentStore.loading"
-                class="w-full rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {{ paymentStore.loading ? 'Redirection vers le paiement...' : 'Payer' }}
-              </button>
-            </template>
-            <template v-else>
-              <NuxtLink
-                to="/login"
-                class="w-full flex justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700"
-              >
-                Se connecter pour Payer
-              </NuxtLink>
-              <p class="mt-2 text-sm text-gray-500 text-center sm:text-left">
-                Votre panier sera conservé après la connexion
-              </p>
-            </template>
+            <!-- Bouton de paiement -->
+            <div class="flex-1 max-w-sm">
+              <template v-if="authStore.user">
+                <button
+                  @click="proceedToCheckout"
+                  :disabled="paymentStore.loading"
+                  class="w-full rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ease-in-out transform hover:scale-[1.02]"
+                >
+                  {{ paymentStore.loading ? 'Redirection vers le paiement...' : 'Payer' }}
+                </button>
+              </template>
+              <template v-else>
+                <NuxtLink
+                  to="/login"
+                  class="w-full flex justify-center rounded-md border border-transparent bg-indigo-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-indigo-700 transition-all duration-200 ease-in-out transform hover:scale-[1.02]"
+                >
+                  Se connecter pour Payer
+                </NuxtLink>
+                <p class="mt-2 text-sm text-gray-500 text-center">
+                  Votre panier sera conservé après la connexion
+                </p>
+              </template>
+            </div>
           </div>
 
           <div v-if="paymentStore.error" class="mt-4 text-center text-red-600 text-sm">

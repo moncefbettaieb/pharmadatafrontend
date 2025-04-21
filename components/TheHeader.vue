@@ -56,7 +56,7 @@
             to="/api-plans"
             class="text-base font-medium text-gray-500 hover:text-gray-900"
           >Plans API</NuxtLink>
-          <template v-if="!user">
+          <template v-if="!user?.emailVerified">
             <NuxtLink
               to="/cart"
               class="relative group flex items-center"
@@ -185,7 +185,7 @@
               <span v-if="cartStore.totalItems > 0" class="ml-2 text-sm text-indigo-600">({{ cartStore.totalItems }})</span>
             </div>
           </NuxtLink>
-          <template v-if="!user">
+          <template v-if="!user?.emailVerified">
             <NuxtLink
               to="/login"
               class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900"

@@ -108,7 +108,7 @@
       <!-- Copyright -->
       <div class="mt-8 border-t border-indigo-800 pt-8">
         <p class="text-center text-sm text-indigo-200">
-          &copy; {{ new Date().getFullYear() }} PharmaData. All rights reserved.
+          &copy; {{ new Date().getFullYear() }} PharmaData. Tous droits réservés.
         </p>
       </div>
     </div>
