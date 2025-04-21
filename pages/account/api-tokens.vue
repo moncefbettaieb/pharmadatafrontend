@@ -373,14 +373,21 @@ curl -X GET \
                 <!-- Uploader -->
                 <div class="flex items-center justify-center w-full">
                   <label
-                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                    :class="{ 'animate-pulse': loading }"
+                    @dragover.prevent="isDragging = true"
+                    @dragleave.prevent="isDragging = false"
+                    @drop.prevent="handleDrop"
+                    class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200"
+                    :class="[
+                      isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100',
+                      loading ? 'animate-pulse' : ''
+                    ]"
                   >
                     <div
                       class="flex flex-col items-center justify-center pt-5 pb-6"
                     >
                       <svg
-                        class="w-8 h-8 mb-4 text-gray-500"
+                        class="w-8 h-8 mb-4 transition-colors duration-200"
+                        :class="isDragging ? 'text-indigo-600' : 'text-gray-500'"
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -394,11 +401,11 @@ curl -X GET \
                           d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
                         />
                       </svg>
-                      <p class="mb-2 text-sm text-gray-500">
+                      <p class="mb-2 text-sm" :class="isDragging ? 'text-indigo-600' : 'text-gray-500'">
                         <span class="font-semibold">Cliquez pour uploader</span>
                         ou glissez-déposez
                       </p>
-                      <p class="text-xs text-gray-500">
+                      <p class="text-xs" :class="isDragging ? 'text-indigo-600' : 'text-gray-500'">
                         TXT, JSON, CSV ou Excel
                       </p>
                     </div>
@@ -657,6 +664,7 @@ const tabs = [
 ];
 
 const expandedIndex = ref<number | null>(null);
+const isDragging = ref(false)
 
 // Fonction pour charger l'historique des recherches
 const loadSearchHistory = async () => {
@@ -1038,6 +1046,22 @@ const copyToClipboard = (content: string) => {
   navigator.clipboard.writeText(content);
   toast.info("Contenu copié au presse-papier");
 };
+
+const handleDrop = async (event: DragEvent) => {
+  isDragging.value = false
+  const files = event.dataTransfer?.files
+  if (!files?.length) {
+    toast.error('Aucun fichier déposé')
+    return
+  }
+
+  const file = files[0]
+  const input = event.target as HTMLInputElement
+  if (input.type === 'file') {
+    input.files = files
+  }
+  await handleFileUpload({ target: { files: [file] } } as unknown as Event)
+}
 
 definePageMeta({
   middleware: ["auth-verified"],
