@@ -30,6 +30,38 @@
         "function": "getProductByCip"
       },
       {
+        "source": "/api/v1/products/brand/**",
+        "function": "getProductsByBrand"
+      },
+      {
+        "source": "/api/v1/products/category/**",
+        "function": "getProductsByCategory"
+      },
+      {
+        "source": "/api/v1/categories",
+        "function": "getCategories"
+      },
+      {
+        "source": "/api/v1/categories/subcategories1",
+        "function": "getSubCategories1"
+      },
+      {
+        "source": "/api/v1/categories/subcategories2",
+        "function": "getSubCategories2"
+      },
+      {
+        "source": "/api/v1/brands",
+        "function": "getBrands"
+      },
+      {
+        "source": "/api/v1/products/id/**",
+        "function": "getProductById"
+      },
+      {
+        "source": "/api/v1/slugs/**",
+        "function": "listProductSlugs"
+      },
+      {
         "source": "/api/v1/payments/products",
         "function": "createProductPaymentSession"
       },

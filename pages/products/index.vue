@@ -31,7 +31,7 @@
           <input
             type="text"
             v-model="searchCip"
-            placeholder="Rechercher un produit par CIP..."
+            placeholder="Rechercher un produit par CIP ou EAN..."
             class="block w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent shadow-sm placeholder-gray-400 transition duration-150 ease-in-out text-sm sm:text-base"
           />
           <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -88,7 +88,7 @@
       >
         <NuxtLink
           v-for="product in filteredProducts"
-          :key="product.cip_code"
+          :key="product.codereferent"
           :to="`/products/${product.id}`"
           class="group flex flex-col justify-between border rounded-md p-4 bg-white shadow-sm h-full min-h-[450px] hover:shadow-md transition-shadow duration-200"
         >
@@ -111,15 +111,20 @@
               </h3>
               <p class="mt-1 text-sm text-gray-500">{{ product.brand }}</p>
               <p class="mt-1 text-xs text-gray-400">
-                CIP: {{ product.cip_code }}
+                Code Réferent (CIP ou EAN): {{ product.codereferent }}
               </p>
             </div>
             <p class="mt-2 text-sm text-gray-600 line-clamp-2">
               {{ product.short_desc }}
             </p>
             <p class="mt-2 text-xs text-gray-500">
-              {{ product.categorie }} > {{ product.sous_categorie_1 }} >
-              {{ product.sous_categorie_2 }}
+              {{ product.categorie }}
+              <template v-if="product.sous_categorie_1">
+                > {{ product.sous_categorie_1 }}
+                <template v-if="product.sous_categorie_2">
+                  > {{ product.sous_categorie_2 }}
+                </template>
+              </template>
             </p>
 
             <!-- Prix + Bouton -->
@@ -200,37 +205,58 @@
                 :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
               >
                 <span class="sr-only">Précédent</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                <svg
+                  class="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </button>
-              
+
               <!-- Pages -->
               <button
                 v-for="page in displayedPages"
                 :key="page"
-                @click="typeof page === 'number' ? currentPage = page : null"
+                @click="typeof page === 'number' ? (currentPage = page) : null"
                 :class="[
                   page === currentPage
                     ? 'bg-indigo-600 text-white'
                     : 'bg-white text-gray-500 hover:bg-gray-50',
                   'relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300',
-                  typeof page !== 'number' ? 'cursor-default' : ''
+                  typeof page !== 'number' ? 'cursor-default' : '',
                 ]"
               >
                 {{ page }}
               </button>
-              
+
               <!-- Bouton Suivant -->
               <button
                 @click="productsStore.pagination.hasMore ? currentPage++ : null"
                 :disabled="!productsStore.pagination.hasMore"
                 class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                :class="{ 'opacity-50 cursor-not-allowed': !productsStore.pagination.hasMore }"
+                :class="{
+                  'opacity-50 cursor-not-allowed':
+                    !productsStore.pagination.hasMore,
+                }"
               >
                 <span class="sr-only">Suivant</span>
-                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                <svg
+                  class="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </button>
             </nav>
@@ -255,11 +281,23 @@ const toast = useToast();
 const currentPage = ref(1);
 const limit = ref(12);
 const searchCip = ref("");
+const debouncedSearch = ref("");
+
+// Debounce la recherche pour éviter trop d'appels API
+watch(searchCip, (newValue) => {
+  if (newValue === "") {
+    debouncedSearch.value = "";
+    return;
+  }
+  const timeoutId = setTimeout(() => {
+    debouncedSearch.value = newValue;
+  }, 300);
+  return () => clearTimeout(timeoutId);
+});
+
 const filteredProducts = computed(() => {
-  if (!searchCip.value) return productsStore.products;
-  return productsStore.products.filter((product: any) =>
-    product.cip_code.toLowerCase().includes(searchCip.value.toLowerCase())
-  );
+  if (!debouncedSearch.value) return productsStore.products;
+  return productsStore.searchResults;
 });
 
 const displayedPages = computed(() => {
@@ -318,7 +356,7 @@ const addToCart = (product: Product) => {
         title: product.title,
         short_desc: product.short_desc,
         image_url: product.image_url,
-        cip_code: product.cip_code,
+        codereferent: product.codereferent,
       });
       toast.success("Fiche produit ajoutée au panier");
     } catch (error) {
@@ -328,8 +366,18 @@ const addToCart = (product: Product) => {
   }
 };
 
-watch([currentPage, limit, searchCip], () => {
-  fetchProducts();
+watch([currentPage, limit], () => {
+  if (!debouncedSearch.value) {
+    fetchProducts();
+  }
+});
+
+watch(debouncedSearch, async (newValue) => {
+  if (newValue) {
+    await productsStore.searchByCodeReferent(newValue);
+  } else {
+    fetchProducts();
+  }
 });
 
 onMounted(() => {

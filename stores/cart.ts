@@ -1,14 +1,15 @@
-import { defineStore } from 'pinia';
+import { defineStore } from "pinia";
+import persistedState from "pinia-plugin-persistedstate";
 
 export interface CartItem {
   productId: string;
   title: string;
   short_desc: string;
   image_url?: string;
-  cip_code: string;
+  codereferent: string;
 }
 
-export const useCartStore = defineStore('cart', {
+export const useCartStore = defineStore("cart", {
   state: () => ({
     items: [] as CartItem[],
   }),
@@ -24,10 +25,13 @@ export const useCartStore = defineStore('cart', {
       title: string;
       short_desc: string;
       image_url?: string;
-      cip_code: string;
+      codereferent: string;
     }) {
       if (!product.productId) {
-        console.error('Tentative d\'ajout d\'un produit sans ID au panier:', product);
+        console.error(
+          "Tentative d'ajout d'un produit sans ID au panier:",
+          product
+        );
         return;
       }
 
@@ -41,7 +45,7 @@ export const useCartStore = defineStore('cart', {
           title: product.title,
           short_desc: product.short_desc,
           image_url: product.image_url,
-          cip_code: product.cip_code,
+          codereferent: product.codereferent,
         });
       }
     },
@@ -61,7 +65,7 @@ export const useCartStore = defineStore('cart', {
   },
 
   persist: {
-    key: 'pharma-cart',
-    storage: persistedState.localStorage,
+    key: "pharma-cart",
+    storage: localStorage,
   },
 });

@@ -1,0 +1,10 @@
+navigation: true
+github: true
+layout:
+  page: article
+  article: article
+ 
+collections:
+  blog:
+    sort:
+      date: -1 
