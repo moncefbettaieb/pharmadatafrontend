@@ -16,14 +16,14 @@
               <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div>
                   <label
-                    for="cip_code"
+                    for="codereferent"
                     class="block text-sm font-medium text-gray-700"
                     >Code CIP*</label
                   >
                   <input
                     type="text"
-                    id="cip_code"
-                    v-model="formData.cip_code"
+                    id="codereferent"
+                    v-model="formData.codereferent"
                     required
                     class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />
@@ -355,7 +355,7 @@ const selectedFiles = ref([]);
 const previewUrls = ref([]);
 
 const formData = ref({
-  cip_code: "",
+  codereferent: "",
   brand: "",
   title: "",
   category: "",
@@ -403,7 +403,7 @@ const removeFile = (index) => {
 
 const resetForm = () => {
   formData.value = {
-    cip_code: "",
+    codereferent: "",
     brand: "",
     title: "",
     category: "",
@@ -441,6 +441,6 @@ const handleSubmit = async () => {
 
 // Protection de la route
 definePageMeta({
-  middleware: ['auth-verified'],
+  middleware: ["auth-verified"],
 });
 </script>

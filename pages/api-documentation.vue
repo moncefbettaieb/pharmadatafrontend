@@ -58,7 +58,7 @@
                     class="px-2 py-1 bg-blue-500 text-white rounded-md text-sm font-medium"
                     >GET</span
                   >
-                  <code class="text-sm">/api/products/{cip_code}</code>
+                  <code class="text-sm">/api/products/{codereferent}</code>
                 </div>
 
                 <h4 class="font-medium text-gray-900 mb-2">Paramètres</h4>
@@ -84,7 +84,9 @@
                   </thead>
                   <tbody class="divide-y divide-gray-200">
                     <tr>
-                      <td class="px-4 py-2 text-sm text-gray-600">cip_code</td>
+                      <td class="px-4 py-2 text-sm text-gray-600">
+                        codereferent
+                      </td>
                       <td class="px-4 py-2 text-sm text-gray-600">string</td>
                       <td class="px-4 py-2 text-sm text-gray-600">
                         Code CIP du produit
@@ -111,37 +113,39 @@
                 <div class="bg-gray-800 rounded-md p-4">
                   <pre class="text-green-400">
                       {
-  "conditionnement": null,
-  "title": "A 313 Pommade dermique, 200 000 UI - Tube 50g",
-  "source": "pharmacie-du-centre",
-  "taxonomy_sub_category1": "Articles pour animaux de compagnie",
-  "combined_categorie": "Médicaments Peau, Cheveux Irritation A 313 Pommade dermique, 200 000 UI - Tube 50g",
-  "indication_contre_indication": "Déconseillé aux femmes enceintes et allaitantes, Ne pas avaler, Tenir hors de portée des enfants, Usage externe uniquement.",
-  "composition_fp": null,
-  "brand": "PHARMA DEVELOPPEMENT",
-  "specificites": null,
-  "composition": null,
-  "taxonomy_category": "Animaux et articles pour animaux de compagnie",
-  "sous_categorie_3": "A 313 Pommade dermique, 200 000 UI - Tube 50g",
-  "nombre_d_unites": "1",
-  "substance_active": "Vitamine A (concentrat de)synthétique, forme huileuse",
-  "presentation": null,
-  "nature_de_produit": "Pommade",
-  "sous_categorie_2": "Irritation",
-  "sous_categorie_1": "Peau, Cheveux",
-  "label": null,
-  "contre_indication": null,
-  "long_desc": "Volume : 50 g Nombre d’unités : 1 Âge minimum : 15 ans Nature de produit ...",
+  "codereferent": "7630019903042",
+  "title": "GUM GUM Activital Sonic Brosse à Dents Souple",
+  "brand": "GUM",
+  "categorie": "Hygiène",
+  "sous_categorie_1": null,
+  "sous_categorie_2": null,
+  "short_desc": "GUM Activital Sonic Brosse à Dents Souple : améliorez votre hygiène bucco-dentaire avec Pharma360. Prix bas, livraison rapide et service client irréprochable.",
+  "long_desc": "GUM Activital Sonic Brosse à Dents Souple : améliorez votre hygiène bucco-dentaire avec Pharma360. Prix bas, livraison rapide et service client irréprochable.",
+  "presentation": "GUM Activital Sonic Brosse à Dents Souple est disponible dès maintenant sur Pharma360 à prix bas. Plus d'informations sur ce produit très prochainement.",
+  "cip7_code": "6077230",
+  "images": [
+    "https://storage.googleapis.com/pharma_images/7630019903042/7630019903042_0.jpeg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=383194447870-compute%40developer.gserviceaccount.com%2F20250429%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250429T221132Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=1cb58087e77c55f3d9f2fc0aeb8c262d52b511dc6b344004566e669729e7cc44dd85ad5aaebf7b512a5f14ad9afe3fe733766d9ad887b86b0b6a4a9b9cfaf87a4f554f9af5296b3e8343013f8aff5c8a3cb9b1be2ac3b2baaaea47e69c2508239fd9249c9999937a67d9e1456d21fa4db804b97be527118723d88a86263910b1f6ee4a902c63ea2f51923f8bac68de59001ef1b3ddd0a3b9334287c453d5d94fb7b2a114e7462dd1437b57bac12392fbcca776db4f06febeb442acfbef8350ae255022b5c04ef475ab1e46e0d4c7900e8f547caa811660ed850a4c2ae47e91fcb59f4b5781dc629977a4f6fc325b3fdf4599dd38b2ac71360124744490e54e76"
+  ],
+  "image_url": "https://storage.googleapis.com/pharma_images/7630019903042/7630019903042_0.jpeg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=383194447870-compute%40developer.gserviceaccount.com%2F20250429%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250429T221132Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=1cb58087e77c55f3d9f2fc0aeb8c262d52b511dc6b344004566e669729e7cc44dd85ad5aaebf7b512a5f14ad9afe3fe733766d9ad887b86b0b6a4a9b9cfaf87a4f554f9af5296b3e8343013f8aff5c8a3cb9b1be2ac3b2baaaea47e69c2508239fd9249c9999937a67d9e1456d21fa4db804b97be527118723d88a86263910b1f6ee4a902c63ea2f51923f8bac68de59001ef1b3ddd0a3b9334287c453d5d94fb7b2a114e7462dd1437b57bac12392fbcca776db4f06febeb442acfbef8350ae255022b5c04ef475ab1e46e0d4c7900e8f547caa811660ed850a4c2ae47e91fcb59f4b5781dc629977a4f6fc325b3fdf4599dd38b2ac71360124744490e54e76",
+  "taxonomy_category": null,
+  "taxonomy_sub_category2": null,
   "taxonomy_sub_category3": null,
-  "cip_code": "3400930001479",
-  "taxonomy_sub_category2": "Médicaments pour animaux de compagnie",
   "usage": null,
+  "nature_de_produit": null,
+  "contre_indication": null,
+  "conditionnement": null,
   "posologie": null,
-  "volume": "50 g",
-  "last_update": "2025-03-26T20:18:06.423757Z",
-  "categorie": "Médicaments",
-  "age_minimum": "15 ans",
-  "short_desc": "Traitement d'appoint des dermites irritatives."
+  "substance_active": null,
+  "label": null,
+  "volume": null,
+  "specificites": null,
+  "age_minimum": null,
+  "indication_contre_indication": null,
+  "taxonomy_sub_category1": null,
+  "sous_categorie_3": null,
+  "composition": null,
+  "nombre_d_unites": null,
+  "last_update": "2025-04-28T11:31:31.000000Z"
 }</pre
                   >
                 </div>
@@ -230,6 +234,92 @@
                 </div>
               </div>
             </div>
+
+            <!-- Get Brands -->
+            <div class="mb-8">
+              <h3 class="text-xl font-medium text-gray-900 mb-3">
+                Récupérer la liste des marques
+              </h3>
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="flex items-center space-x-2 mb-4">
+                  <span
+                    class="px-2 py-1 bg-blue-500 text-white rounded-md text-sm font-medium"
+                    >GET</span
+                  >
+                  <code class="text-sm">/api/v1/brands</code>
+                </div>
+
+                <h4 class="font-medium text-gray-900 mb-2">
+                  Exemple de requête
+                </h4>
+                <div class="bg-gray-800 rounded-md p-4 mb-4">
+                  <code class="text-green-400">
+                    curl -X GET \<br />
+                    &nbsp;&nbsp;https://fournisseur-data.firebaseapp.com/api/v1/brands
+                    \<br />
+                    &nbsp;&nbsp;-H 'Authorization: Bearer votre_token_api'
+                  </code>
+                </div>
+
+                <h4 class="font-medium text-gray-900 mb-2">
+                  Exemple de réponse
+                </h4>
+                <div class="bg-gray-800 rounded-md p-4">
+                  <pre class="text-green-400">
+[
+  "PHARMA DEVELOPPEMENT",
+  "SANOFI",
+  "BAYER",
+  "PFIZER",
+  "JOHNSON & JOHNSON"
+]</pre
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Get Categories -->
+            <div class="mb-8">
+              <h3 class="text-xl font-medium text-gray-900 mb-3">
+                Récupérer la liste des catégories
+              </h3>
+              <div class="bg-gray-50 rounded-lg p-6">
+                <div class="flex items-center space-x-2 mb-4">
+                  <span
+                    class="px-2 py-1 bg-blue-500 text-white rounded-md text-sm font-medium"
+                    >GET</span
+                  >
+                  <code class="text-sm">/api/v1/categories</code>
+                </div>
+
+                <h4 class="font-medium text-gray-900 mb-2">
+                  Exemple de requête
+                </h4>
+                <div class="bg-gray-800 rounded-md p-4 mb-4">
+                  <code class="text-green-400">
+                    curl -X GET \<br />
+                    &nbsp;&nbsp;https://fournisseur-data.firebaseapp.com/api/v1/categories
+                    \<br />
+                    &nbsp;&nbsp;-H 'Authorization: Bearer votre_token_api'
+                  </code>
+                </div>
+
+                <h4 class="font-medium text-gray-900 mb-2">
+                  Exemple de réponse
+                </h4>
+                <div class="bg-gray-800 rounded-md p-4">
+                  <pre class="text-green-400">
+[
+  "Médicaments",
+  "Parapharmacie",
+  "Hygiène",
+  "Premiers soins",
+  "Materiel médical"
+]</pre
+                  >
+                </div>
+              </div>
+            </div>
           </section>
 
           <!-- Rate Limits -->
@@ -252,7 +342,7 @@
                     <th
                       class="px-4 py-2 text-left text-sm font-medium text-gray-900"
                     >
-                      Requêtes/mois
+                      Fiches Produits/mois
                     </th>
                   </tr>
                 </thead>

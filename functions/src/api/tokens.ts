@@ -16,7 +16,24 @@ export const generateToken = onCall({
     const db = admin.firestore();
     const userId = request.auth.uid;
 
-    // Générer un token aléatoire
+    // Vérifier si l'utilisateur a déjà un token actif
+    const activeTokenSnapshot = await db
+      .collection("api_tokens")
+      .where("userId", "==", userId)
+      .where("isRevoked", "==", false)
+      .limit(1)
+      .get();
+
+    // Si un token actif existe, le retourner
+    if (!activeTokenSnapshot.empty) {
+      const activeToken = activeTokenSnapshot.docs[0];
+      return { 
+        token: activeToken.data().token, 
+        id: activeToken.id 
+      };
+    }
+
+    // Sinon, générer un nouveau token
     const token = randomBytes(32).toString("hex");
 
     // Créer un document pour le token
@@ -38,7 +55,7 @@ export const generateToken = onCall({
       title: "Generation de token",
       type: "info",
       read: "false",
-      message: "Token génré avec succès",
+      message: "Token généré avec succès",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
