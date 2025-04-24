@@ -2,8 +2,13 @@
     <div class="bg-white min-h-screen py-12">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <!-- Loading state -->
-        <div v-if="loading" class="flex justify-center items-center min-h-[400px]">
-          <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+      <div
+        v-if="loading"
+        class="flex justify-center items-center min-h-[400px]"
+      >
+        <div
+          class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"
+        ></div>
         </div>
     
         <!-- Error state -->
@@ -18,7 +23,10 @@
         </div>
     
         <!-- Product details -->
-        <div v-else-if="product" class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10">
+      <div
+        v-else-if="product"
+        class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-10"
+      >
           <!-- Images section -->
           <div class="relative">
             <!-- Main image -->
@@ -31,7 +39,10 @@
             </div>
     
             <!-- Thumbnails -->
-            <div v-if="product.images && product.images.length > 1" class="mt-4 grid grid-cols-4 gap-4">
+          <div
+            v-if="product.images && product.images.length > 1"
+            class="mt-4 grid grid-cols-4 gap-4"
+          >
               <button
                 v-for="(image, index) in product.images.slice(0, 4)"
                 :key="index"
@@ -50,7 +61,9 @@
     
           <!-- Product info -->
           <div>
-            <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ product.title }}</h1>
+          <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+            {{ product.title }}
+          </h1>
             
             <div class="mt-4">
               <h2 class="sr-only">Informations produit</h2>
@@ -60,28 +73,46 @@
             <!-- Brand -->
             <div class="mt-4">
               <h3 class="text-sm font-medium text-gray-900">Marque</h3>
-              <p class="mt-2 text-sm text-gray-500">{{ product.brand }}</p>
+            <NuxtLink
+              :to="`/products/brand/${encodeURIComponent(product.brand)}`"
+              class="mt-2 text-sm text-indigo-600 hover:text-indigo-800"
+            >
+              {{ product.brand }}
+            </NuxtLink>
             </div>
     
             <!-- CIP -->
             <div class="mt-4">
-              <h3 class="text-sm font-medium text-gray-900">Code CIP</h3>
-              <p class="mt-2 text-sm text-gray-500">{{ product.cip_code }}</p>
+            <h3 class="text-sm font-medium text-gray-900">
+              Code Réferent (CIP ou EAN)
+            </h3>
+            <p class="mt-2 text-sm text-gray-500">{{ product.codereferent }}</p>
             </div>
     
             <!-- Categories -->
             <div class="mt-4">
               <h3 class="text-sm font-medium text-gray-900">Catégories</h3>
               <div class="mt-2">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2">
+              <NuxtLink
+                :to="`/products/category/${encodeURIComponent(product.categorie)}`"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 mr-2 hover:bg-indigo-200"
+              >
                   {{ product.categorie }}
-                </span>
-                <span v-if="product.sous_categorie_1" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+              </NuxtLink>
+              <NuxtLink
+                v-if="product.sous_categorie_1"
+                :to="`/products/category/${encodeURIComponent(product.categorie)}?subCategory1=${encodeURIComponent(product.sous_categorie_1)}`"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2 hover:bg-blue-200"
+              >
                   {{ product.sous_categorie_1 }}
-                </span>
-                <span v-if="product.sous_categorie_2" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              </NuxtLink>
+              <NuxtLink
+                v-if="product.sous_categorie_2"
+                :to="`/products/category/${encodeURIComponent(product.categorie)}?subCategory1=${encodeURIComponent(product.sous_categorie_1)}&subCategory2=${encodeURIComponent(product.sous_categorie_2)}`"
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200"
+              >
                   {{ product.sous_categorie_2 }}
-                </span>
+              </NuxtLink>
               </div>
             </div>
     
@@ -98,7 +129,11 @@
                 :disabled="isInCart"
                 class="flex-1 bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {{ isInCart ? 'Déjà dans le panier' : 'Ajouter la fiche au panier pour 0.70€' }}
+              {{
+                isInCart
+                  ? "Déjà dans le panier"
+                  : "Ajouter la fiche au panier pour 0.70€"
+              }}
               </button>
             </div>
     
@@ -118,79 +153,154 @@
     </template>
     
     <script setup lang="ts">
-    import { useProductsStore } from '~/stores/products'
-    import { useCartStore } from '~/stores/cart'
-    import { useToast } from 'vue-toastification'
-    import type { Product } from '~/types/product'
-    import type { CartItem } from '~/stores/cart'
+import { useProductsStore } from "~/stores/products";
+import { useCartStore } from "~/stores/cart";
+import { useToast } from "vue-toastification";
+import type { Product } from "~/types/product";
+import type { CartItem } from "~/stores/cart";
     
-    const route = useRoute()
-    const productsStore = useProductsStore()
-    const cartStore = useCartStore()
-    const toast = useToast()
+const route = useRoute();
+const productsStore = useProductsStore();
+const cartStore = useCartStore();
+const toast = useToast();
     
-    const loading = ref(true)
-    const error = ref<string | null>(null)
-    const product = ref<Product | null>(null)
-    const currentImage = ref<string | null>(null)
+const loading = ref(true);
+const error = ref<string | null>(null);
+const product = ref<Product | null>(null);
+const currentImage = ref<string | null>(null);
     
     const isInCart = computed(() => {
-      if (!product.value) return false
-      return cartStore.items.some((item: CartItem) => item.productId === product.value?.id)
-    })
+  if (!product.value) return false;
+  return cartStore.items.some(
+    (item: CartItem) => item.productId === product.value?.id
+  );
+});
     
     const addToCart = () => {
-      if (!product.value) {
-        toast.error('Produit non disponible');
-        return;
-      }
+  if (!product.value) return;
 
-      const existingProduct = cartStore.items.find((item: CartItem) => item.productId === product.value?.id);
-      if (existingProduct) {
-        toast.warning('Ce produit est déjà dans votre panier');
-        return;
-      }
+      const item = {
+        productId: product.value.id,
+        title: product.value.title,
+        short_desc: product.value.short_desc,
+        image_url: product.value.image_url,
+    codereferent: product.value.codereferent,
+  };
 
-      try {
-        cartStore.addToCart({
-          productId: product.value.id,
-          title: product.value.title,
-          short_desc: product.value.short_desc,
-          image_url: product.value.image_url,
-          cip_code: product.value.cip_code,
-        });
-
-        toast.success('Produit ajouté au panier');
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout au panier:', error);
-        toast.error('Erreur lors de l\'ajout au panier');
-      }
-    }
+  cartStore.addToCart(item);
+};
     
     // Fetch product data
     onMounted(async () => {
       try {
-        const productId = route.params.id as string
-        product.value = await productsStore.getProductById(productId)
+    const productId = route.params.id as string;
+    product.value = await productsStore.getProductById(productId);
         
-        if (product.value?.images && Array.isArray(product.value.images) && product.value.images.length > 0) {
-          currentImage.value = product.value.images[0]
+    if (
+      product.value?.images &&
+      Array.isArray(product.value.images) &&
+      product.value.images.length > 0
+    ) {
+      currentImage.value = product.value.images[0];
         } else if (product.value?.image_url) {
-          currentImage.value = product.value.image_url
+      currentImage.value = product.value.image_url;
         }
       } catch (err) {
-        error.value = "Erreur lors du chargement du produit"
-        console.error('Error fetching product:', err)
+    error.value = "Erreur lors du chargement du produit";
+    console.error("Error fetching product:", err);
       } finally {
-        loading.value = false
+    loading.value = false;
       }
-    })
+});
     
     // Meta tags
-    useHead({
-      title: computed(() => product.value ? `${product.value.title} - PharmaData` : 'Produit - PharmaData'),
+useHead(() => ({
+  title: product.value
+    ? `${product.value.title} - PharmaData`
+    : "Produit - PharmaData",
       meta: [
-        { name: 'description', content: computed(() => product.value?.short_desc || 'Détails du produit') }
-      ]
-    })
+    {
+      name: "description",
+      content: product.value?.short_desc || "Détails du produit",
+    },
+    {
+      name: "keywords",
+      content: product.value
+        ? `${product.value.brand}, ${product.value.categorie}, ${
+            product.value.sous_categorie_1 || ""
+          }, ${product.value.sous_categorie_2 || ""}, pharmacie, médicament`
+        : "pharmacie, médicament",
+    },
+
+    // Open Graph tags
+    {
+      property: "og:title",
+      content: product.value
+        ? `${product.value.title} - PharmaData`
+        : "Produit - PharmaData",
+    },
+    {
+      property: "og:description",
+      content: product.value?.short_desc || "Détails du produit",
+    },
+    { property: "og:type", content: "product" },
+    {
+      property: "og:image",
+      content: currentImage.value || "/images/placeholder-product.png",
+    },
+    {
+      property: "og:url",
+      content: `${process.client ? window.location.origin : ""}/products/${
+        route.params.id
+      }`,
+    },
+
+    // Twitter Card tags
+    { name: "twitter:card", content: "product" },
+    {
+      name: "twitter:title",
+      content: product.value
+        ? `${product.value.title} - PharmaData`
+        : "Produit - PharmaData",
+    },
+    {
+      name: "twitter:description",
+      content: product.value?.short_desc || "Détails du produit",
+    },
+    {
+      name: "twitter:image",
+      content: currentImage.value || "/images/placeholder-product.png",
+    },
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      children: computed(() => {
+        if (!product.value) return "{}";
+        return JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.value.title,
+          description: product.value.short_desc,
+          brand: {
+            "@type": "Brand",
+            name: product.value.brand,
+          },
+          sku: product.value.codereferent,
+          image:
+            product.value.images?.[0] ||
+            product.value.image_url ||
+            "images/placeholder-product.png",
+          category: product.value.categorie,
+          offers: {
+            "@type": "Offer",
+            price: "0.70",
+            priceCurrency: "EUR",
+            availability: "https://schema.org/InStock",
+          },
+        });
+      }),
+    },
+  ],
+}));
     </script>

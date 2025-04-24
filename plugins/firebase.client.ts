@@ -1,9 +1,16 @@
 import { initializeApp } from 'firebase/app'
+import type { FirebaseApp } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
+import type { Auth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
+import type { Firestore } from 'firebase/firestore'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
+import type { Functions } from 'firebase/functions'
 
-let app, auth, firestore, functions;
+let app: FirebaseApp | undefined
+let auth: Auth | undefined
+let firestore: Firestore | undefined
+let functions: Functions | undefined
 
 export const initFirebase = () => {
   if (!app) {
@@ -21,14 +28,13 @@ export const initFirebase = () => {
     app = initializeApp(firebaseConfig)
     auth = getAuth(app)
     firestore = getFirestore(app)
-    functions = getFunctions(app)
     
-    // Définir la région si nécessaire
-    functions = getFunctions(app, 'europe-west9'); // ou votre région
+    // Initialiser les fonctions avec la région correcte
+    functions = getFunctions(app, 'europe-west9')
 
     // En développement local, utilisez l'émulateur
     if (process.env.NODE_ENV === 'development') {
-      connectFunctionsEmulator(functions, 'localhost', 5001);
+      connectFunctionsEmulator(functions, 'localhost', 5001)
     }
   }
 

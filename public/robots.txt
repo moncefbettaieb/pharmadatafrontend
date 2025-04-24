@@ -1,1 +1,19 @@
+# Robots.txt – PharmaData API
+User-agent: *
+Allow: /
 
+# Bloquer l’interface privée des comptes et l’API
+Disallow: /account/
+Disallow: /api/
+Disallow: /cart/
+Disallow: /payment/
+Disallow: /payment-cart/
+
+# Version PDF de la doc (sera référencée via <link rel="canonical"> dans HTML)
+Disallow: /docs/*.pdf$
+
+# Crawl-delay pour les petits bots agressifs (optionnel)
+# Crawl-delay: 5
+
+# Sitemap
+Sitemap: https://pharmadataapi.fr/sitemap.xml

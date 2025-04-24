@@ -144,28 +144,6 @@
                 </div>
               </div>
 
-              <!-- Graphique d'utilisation -->
-              <div class="mt-6">
-                <h4 class="text-sm font-medium text-gray-900 mb-4">
-                  Historique d'utilisation
-                </h4>
-                <!-- Sur petits écrans, le grid passera en 1 colonne -->
-                <div class="grid grid-cols-1 sm:grid-cols-7 gap-2">
-                  <div
-                    v-for="day in apiStore.usage"
-                    :key="day.date"
-                    class="h-24 bg-gray-100 rounded-md p-2 relative"
-                  >
-                    <div class="text-xs text-gray-500">
-                      {{ formatDate(day.date) }}
-                    </div>
-                    <div class="text-sm font-medium">
-                      {{ day.endpoint }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <!-- Documentation d'utilisation -->
               <div class="border-t border-gray-200 px-4 py-5 sm:p-6 mt-6">
                 <h3 class="text-base font-semibold leading-6 text-gray-900">
@@ -193,7 +171,7 @@ Authorization: Bearer {{ apiStore.token || "votre_token" }}
                         class="flex-1 text-sm text-gray-900 overflow-x-auto break-all"
                       >
 curl -X GET \
-  https://fournisseur-data.firebaseapp.com/api/v1/products/3400930001479 \
+  https://fournisseur-data.firebaseapp.com/api/v1/products/7630019903042 \
   -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'
                     </pre
                       >
@@ -234,38 +212,41 @@ curl -X GET \
                     </h4>
                     <pre class="mt-2 rounded-md bg-gray-50 p-4 overflow-x-auto">
                       {
-  "conditionnement": null,
-  "title": "A 313 Pommade dermique, 200 000 UI - Tube 50g",
-  "source": "pharmacie-du-centre",
-  "taxonomy_sub_category1": "Articles pour animaux de compagnie",
-  "combined_categorie": "Médicaments Peau, Cheveux Irritation A 313 Pommade dermique, 200 000 UI - Tube 50g",
-  "indication_contre_indication": "Déconseillé aux femmes enceintes et allaitantes, Ne pas avaler, Tenir hors de portée des enfants, Usage externe uniquement.",
-  "composition_fp": null,
-  "brand": "PHARMA DEVELOPPEMENT",
-  "specificites": null,
-  "composition": null,
-  "taxonomy_category": "Animaux et articles pour animaux de compagnie",
-  "sous_categorie_3": "A 313 Pommade dermique, 200 000 UI - Tube 50g",
-  "nombre_d_unites": "1",
-  "substance_active": "Vitamine A (concentrat de)synthétique, forme huileuse",
-  "presentation": null,
-  "nature_de_produit": "Pommade",
-  "sous_categorie_2": "Irritation",
-  "sous_categorie_1": "Peau, Cheveux",
-  "label": null,
-  "contre_indication": null,
-  "long_desc": "Volume : 50 g Nombre d'unités : 1 Âge minimum : 15 ans Nature de produit ...",
+  "codereferent": "7630019903042",
+  "title": "GUM GUM Activital Sonic Brosse à Dents Souple",
+  "brand": "GUM",
+  "categorie": "Hygiène",
+  "sous_categorie_1": null,
+  "sous_categorie_2": null,
+  "short_desc": "GUM Activital Sonic Brosse à Dents Souple : améliorez votre hygiène bucco-dentaire avec Pharma360. Prix bas, livraison rapide et service client irréprochable.",
+  "long_desc": "GUM Activital Sonic Brosse à Dents Souple : améliorez votre hygiène bucco-dentaire avec Pharma360. Prix bas, livraison rapide et service client irréprochable.",
+  "presentation": "GUM Activital Sonic Brosse à Dents Souple est disponible dès maintenant sur Pharma360 à prix bas. Plus d'informations sur ce produit très prochainement.",
+  "cip7_code": "6077230",
+  "images": [
+    "https://storage.googleapis.com/pharma_images/7630019903042/7630019903042_0.jpeg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=383194447870-compute%40developer.gserviceaccount.com%2F20250429%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250429T221132Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=1cb58087e77c55f3d9f2fc0aeb8c262d52b511dc6b344004566e669729e7cc44dd85ad5aaebf7b512a5f14ad9afe3fe733766d9ad887b86b0b6a4a9b9cfaf87a4f554f9af5296b3e8343013f8aff5c8a3cb9b1be2ac3b2baaaea47e69c2508239fd9249c9999937a67d9e1456d21fa4db804b97be527118723d88a86263910b1f6ee4a902c63ea2f51923f8bac68de59001ef1b3ddd0a3b9334287c453d5d94fb7b2a114e7462dd1437b57bac12392fbcca776db4f06febeb442acfbef8350ae255022b5c04ef475ab1e46e0d4c7900e8f547caa811660ed850a4c2ae47e91fcb59f4b5781dc629977a4f6fc325b3fdf4599dd38b2ac71360124744490e54e76"
+  ],
+  "image_url": "https://storage.googleapis.com/pharma_images/7630019903042/7630019903042_0.jpeg?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=383194447870-compute%40developer.gserviceaccount.com%2F20250429%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250429T221132Z&X-Goog-Expires=3600&X-Goog-SignedHeaders=host&X-Goog-Signature=1cb58087e77c55f3d9f2fc0aeb8c262d52b511dc6b344004566e669729e7cc44dd85ad5aaebf7b512a5f14ad9afe3fe733766d9ad887b86b0b6a4a9b9cfaf87a4f554f9af5296b3e8343013f8aff5c8a3cb9b1be2ac3b2baaaea47e69c2508239fd9249c9999937a67d9e1456d21fa4db804b97be527118723d88a86263910b1f6ee4a902c63ea2f51923f8bac68de59001ef1b3ddd0a3b9334287c453d5d94fb7b2a114e7462dd1437b57bac12392fbcca776db4f06febeb442acfbef8350ae255022b5c04ef475ab1e46e0d4c7900e8f547caa811660ed850a4c2ae47e91fcb59f4b5781dc629977a4f6fc325b3fdf4599dd38b2ac71360124744490e54e76",
+  "taxonomy_category": null,
+  "taxonomy_sub_category2": null,
   "taxonomy_sub_category3": null,
-  "cip_code": "3400930001479",
-  "taxonomy_sub_category2": "Médicaments pour animaux de compagnie",
   "usage": null,
+  "nature_de_produit": null,
+  "contre_indication": null,
+  "conditionnement": null,
   "posologie": null,
-  "volume": "50 g",
-  "last_update": "2025-03-26T20:18:06.423757Z",
-  "categorie": "Médicaments",
-  "age_minimum": "15 ans",
-  "short_desc": "Traitement d'appoint des dermites irritatives."
-}</pre
+  "substance_active": null,
+  "label": null,
+  "volume": null,
+  "specificites": null,
+  "age_minimum": null,
+  "indication_contre_indication": null,
+  "taxonomy_sub_category1": null,
+  "sous_categorie_3": null,
+  "composition": null,
+  "nombre_d_unites": null,
+  "last_update": "2025-04-28T11:31:31.000000Z"
+}
+</pre
                     >
                   </div>
                 </div>
@@ -363,7 +344,7 @@ curl -X GET \
                     </li>
                     <li>
                       <strong>JSON</strong> : Tableau de codes CIP ou objets
-                      avec propriété cip/code_cip/cip_code
+                      avec propriété cip/code_cip/codereferent
                     </li>
                   </ul>
                 </div>
@@ -378,8 +359,10 @@ curl -X GET \
                     @drop.prevent="handleDrop"
                     class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200"
                     :class="[
-                      isDragging ? 'border-indigo-600 bg-indigo-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100',
-                      loading ? 'animate-pulse' : ''
+                      isDragging
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-gray-300 bg-gray-50 hover:bg-gray-100',
+                      loading ? 'animate-pulse' : '',
                     ]"
                   >
                     <div
@@ -387,7 +370,9 @@ curl -X GET \
                     >
                       <svg
                         class="w-8 h-8 mb-4 transition-colors duration-200"
-                        :class="isDragging ? 'text-indigo-600' : 'text-gray-500'"
+                        :class="
+                          isDragging ? 'text-indigo-600' : 'text-gray-500'
+                        "
                         aria-hidden="true"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
@@ -401,11 +386,21 @@ curl -X GET \
                           d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
                         />
                       </svg>
-                      <p class="mb-2 text-sm" :class="isDragging ? 'text-indigo-600' : 'text-gray-500'">
+                      <p
+                        class="mb-2 text-sm"
+                        :class="
+                          isDragging ? 'text-indigo-600' : 'text-gray-500'
+                        "
+                      >
                         <span class="font-semibold">Cliquez pour uploader</span>
                         ou glissez-déposez
                       </p>
-                      <p class="text-xs" :class="isDragging ? 'text-indigo-600' : 'text-gray-500'">
+                      <p
+                        class="text-xs"
+                        :class="
+                          isDragging ? 'text-indigo-600' : 'text-gray-500'
+                        "
+                      >
                         TXT, JSON, CSV ou Excel
                       </p>
                     </div>
@@ -525,12 +520,12 @@ curl -X GET \
                     <tbody class="divide-y divide-gray-200 bg-white">
                       <tr
                         v-for="(result, index) in results"
-                        :key="result.cip_code"
+                        :key="result.codereferent"
                       >
                         <td
                           class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900"
                         >
-                          {{ result.cip_code }}
+                          {{ result.codereferent }}
                         </td>
                         <td
                           class="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
@@ -627,16 +622,28 @@ curl -X GET \
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from "vue";
 import { useApiStore } from "~/stores/api";
 import { useToast } from "vue-toastification";
 import { read, utils, type WorkBook } from "xlsx";
 import Papa from "papaparse";
-import { getFirestore, collection, query, where, getDocs, writeBatch, doc, serverTimestamp, type DocumentData, orderBy, limit } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+  doc,
+  serverTimestamp,
+  type DocumentData,
+  orderBy,
+  limit,
+} from "firebase/firestore";
 import { useAuthStore } from "~/stores/auth";
 
 interface SearchResult {
-  cip_code: string;
+  codereferent: string;
   title: string;
   brand: string;
   status: string;
@@ -664,39 +671,45 @@ const tabs = [
 ];
 
 const expandedIndex = ref<number | null>(null);
-const isDragging = ref(false)
+const isDragging = ref(false);
 
 // Fonction pour charger l'historique des recherches
 const loadSearchHistory = async () => {
   try {
     loading.value = true;
     const db = getFirestore();
-    const resultsRef = collection(db, 'api_search_history');
+    const resultsRef = collection(db, "api_search_history");
     const userId = authStore.user?.uid;
-    
+
     const q = query(
       resultsRef,
-      where('userId', '==', userId),
-      orderBy('searchDate', 'desc'),
-      limit(50)
+      where("userId", "==", userId),
+      orderBy("searchDate", "desc")
     );
 
     const snapshot = await getDocs(q);
-    results.value = snapshot.docs.map((doc: DocumentData) => {
+    const newResults = snapshot.docs.map((doc: DocumentData) => {
       const data = doc.data();
       return {
-        cip_code: data.cip_code,
+        codereferent: data.codereferent,
         title: data.title,
         brand: data.brand,
         status: data.status,
         last_update: data.last_update,
         fullData: data.fullData,
-        fromCache: true
+        fromCache: true,
       } as SearchResult;
     });
+
+    // Fusionner les nouveaux résultats avec les résultats existants
+    newResults.forEach(result => {
+      if (!results.value.some(r => r.codereferent === result.codereferent)) {
+        results.value.push(result);
+      }
+    });
   } catch (error) {
-    console.error('Erreur lors du chargement de l\'historique:', error);
-    toast.error('Erreur lors du chargement de l\'historique');
+    console.error("Erreur lors du chargement de l'historique:", error);
+    toast.error("Erreur lors du chargement de l'historique");
   } finally {
     loading.value = false;
   }
@@ -704,7 +717,7 @@ const loadSearchHistory = async () => {
 
 // Observer le changement d'onglet
 watch(currentTab, async (newTab: string) => {
-  if (newTab === 'import' && results.value.length === 0) {
+  if (newTab === "import" && results.value.length === 0) {
     await loadSearchHistory();
   }
 });
@@ -712,9 +725,9 @@ watch(currentTab, async (newTab: string) => {
 onMounted(async () => {
   try {
     await Promise.all([
-      apiStore.fetchUsage(), 
+      apiStore.fetchUsage(),
       apiStore.fetchTokenHistory(),
-      currentTab.value === 'import' ? loadSearchHistory() : Promise.resolve()
+      currentTab.value === "import" ? loadSearchHistory() : Promise.resolve(),
     ]);
 
     // Générer automatiquement un token si l'utilisateur n'en a pas
@@ -763,7 +776,7 @@ const copyRequest = () => {
 const handleFileUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (!target.files?.length) {
-    toast.error('Aucun fichier sélectionné');
+    toast.error("Aucun fichier sélectionné");
     return;
   }
 
@@ -772,42 +785,54 @@ const handleFileUpload = async (event: Event) => {
   results.value = []; // Reset results
 
   try {
-    let cipCodes: string[] = [];
+    let codereferents: string[] = [];
 
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+    if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
       const workbook = await readFileAsWorkbook(file);
-      cipCodes = extractCipCodes(workbook);
-    } else if (file.name.endsWith('.csv')) {
+      codereferents = extractCipCodes(workbook);
+    } else if (file.name.endsWith(".csv")) {
       const text = await file.text();
       const parsed = Papa.parse(text, { header: true });
-      cipCodes = extractCipCodesFromParsedData(parsed.data);
-    } else if (file.name.endsWith('.txt')) {
+      codereferents = extractCipCodesFromParsedData(parsed.data);
+    } else if (file.name.endsWith(".txt")) {
       const text = await file.text();
-      cipCodes = text.split(/[\n,]/).map(code => code.trim()).filter(Boolean);
-    } else if (file.name.endsWith('.json')) {
+      codereferents = text
+        .split(/[\n,]/)
+        .map((code) => code.trim())
+        .filter(Boolean);
+    } else if (file.name.endsWith(".json")) {
       const text = await file.text();
       const data = JSON.parse(text);
-      cipCodes = extractCipCodesFromJson(data);
+      codereferents = extractCipCodesFromJson(data);
     }
 
-    if (cipCodes.length === 0) {
-      toast.error('Aucun code CIP trouvé dans le fichier');
+    if (codereferents.length === 0) {
+      toast.error("Aucun code CIP trouvé dans le fichier");
       return;
     }
 
-    const processResult = await processCipCodes(cipCodes);
+    const processResult = await processCipCodes(codereferents);
     if (processResult.errors.length > 0) {
-      processResult.errors.forEach(error => toast.error(error));
+      processResult.errors.forEach((error) => toast.error(error));
     }
-    
-    const successCount = processResult.results.filter(r => r.status === 'success').length;
-    const errorCount = processResult.results.filter(r => r.status === 'error').length;
-    
-    toast.info(`Traitement terminé: ${successCount} produits trouvés, ${errorCount} non trouvés`);
-    
+
+    const successCount = processResult.results.filter(
+      (r) => r.status === "success"
+    ).length;
+    const errorCount = processResult.results.filter(
+      (r) => r.status === "error"
+    ).length;
+
+    toast.info(
+      `Traitement terminé: ${successCount} produits trouvés, ${errorCount} non trouvés`
+    );
   } catch (error) {
-    console.error('Erreur lors du traitement du fichier:', error);
-    toast.error(error instanceof Error ? error.message : 'Erreur lors du traitement du fichier');
+    console.error("Erreur lors du traitement du fichier:", error);
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : "Erreur lors du traitement du fichier"
+    );
   } finally {
     loading.value = false;
   }
@@ -819,19 +844,20 @@ const readFileAsWorkbook = (file: File): Promise<WorkBook> => {
     reader.onload = (r: ProgressEvent<FileReader>) => {
       try {
         const data = r.target?.result;
-        const workbook = read(data, { type: 'binary' });
+        const workbook = read(data, { type: "binary" });
         resolve(workbook);
       } catch (error) {
-        reject(new Error('Erreur lors de la lecture du fichier'));
+        reject(new Error("Erreur lors de la lecture du fichier"));
       }
     };
-    reader.onerror = () => reject(new Error('Erreur lors de la lecture du fichier'));
+    reader.onerror = () =>
+      reject(new Error("Erreur lors de la lecture du fichier"));
     reader.readAsBinaryString(file);
   });
 };
 
 const extractCipCodes = (workbook: WorkBook): string[] => {
-  const cipCodes: string[] = [];
+  const codereferents: string[] = [];
 
   workbook.SheetNames.forEach((sheetName: string) => {
     const worksheet = workbook.Sheets[sheetName];
@@ -841,7 +867,14 @@ const extractCipCodes = (workbook: WorkBook): string[] => {
       const rowData = row as Record<string, unknown>;
 
       // Vérifier chaque colonne possible
-      for (const column of ["cip", "code_cip", "cip_code", "code", "cip13", "cip7"]) {
+      for (const column of [
+        "cip",
+        "code_cip",
+        "codereferent",
+        "code",
+        "cip13",
+        "cip7",
+      ]) {
         if (rowData[column]) {
           cipCode = String(rowData[column]).trim();
           break;
@@ -849,65 +882,90 @@ const extractCipCodes = (workbook: WorkBook): string[] => {
       }
 
       if (cipCode) {
-        cipCodes.push(cipCode);
+        codereferents.push(cipCode);
       }
     });
   });
 
-  return cipCodes;
+  return codereferents;
 };
 
 const extractCipCodesFromParsedData = (data: any[]): string[] => {
-  const cipCodes: string[] = [];
+  const codereferents: string[] = [];
   for (const row of data) {
-    for (const key of ['cip', 'code_cip', 'cip_code', 'code', 'cip13', 'cip7']) {
+    for (const key of [
+      "cip",
+      "code_cip",
+      "codereferent",
+      "code",
+      "cip13",
+      "cip7",
+    ]) {
       if (row[key]) {
         const code = String(row[key]).trim();
-        if (code) cipCodes.push(code);
+        if (code) codereferents.push(code);
         break;
       }
     }
   }
-  return cipCodes;
+  return codereferents;
 };
 
 const extractCipCodesFromJson = (data: any): string[] => {
-  const cipCodes: string[] = [];
-  
+  const codereferents: string[] = [];
+
   if (Array.isArray(data)) {
-    data.forEach(item => {
-      if (typeof item === 'string') {
-        cipCodes.push(item.trim());
-      } else if (typeof item === 'object' && item !== null) {
-        for (const key of ['cip', 'code_cip', 'cip_code', 'code', 'cip13', 'cip7']) {
+    data.forEach((item) => {
+      if (typeof item === "string") {
+        codereferents.push(item.trim());
+      } else if (typeof item === "object" && item !== null) {
+        for (const key of [
+          "cip",
+          "code_cip",
+          "codereferent",
+          "code",
+          "cip13",
+          "cip7",
+        ]) {
           if (item[key]) {
-            cipCodes.push(String(item[key]).trim());
+            codereferents.push(String(item[key]).trim());
             break;
           }
         }
       }
     });
-  } else if (typeof data === 'object' && data !== null) {
-    for (const key of ['cip', 'code_cip', 'cip_code', 'code', 'cip13', 'cip7']) {
+  } else if (typeof data === "object" && data !== null) {
+    for (const key of [
+      "cip",
+      "code_cip",
+      "codereferent",
+      "code",
+      "cip13",
+      "cip7",
+    ]) {
       if (data[key]) {
-        cipCodes.push(String(data[key]).trim());
+        codereferents.push(String(data[key]).trim());
         break;
       }
     }
   }
-  
-  return cipCodes;
+
+  return codereferents;
 };
 
-const processCipCodes = async (cipCodes: string[]): Promise<ProcessedResult> => {
+const processCipCodes = async (
+  codereferents: string[]
+): Promise<ProcessedResult> => {
   try {
-    const { cached, newCodes } = await getCachedResults(cipCodes);
-    
+    const { cached, newCodes } = await getCachedResults(codereferents);
+
     // Ajouter les résultats en cache à results
-    cached.forEach(result => {
+    cached.forEach((result) => {
+      if (!results.value.some(r => r.codereferent === result.codereferent)) {
       results.value.push(result);
+      }
     });
-    
+
     if (newCodes.length > 0) {
       // Appeler l'API pour chaque code CIP
       const newResults = await Promise.all(
@@ -930,93 +988,99 @@ const processCipCodes = async (cipCodes: string[]): Promise<ProcessedResult> => 
 
             const product = await response.json();
             return {
-              cip_code: cipCode,
+              codereferent: cipCode,
               title: product.title,
               brand: product.brand,
               status: "success",
               last_update: product.last_update,
-              fullData: product
+              fullData: product,
             } as SearchResult;
           } catch (error) {
             return {
-              cip_code: cipCode,
+              codereferent: cipCode,
               title: "-",
               brand: "-",
               status: "error",
               last_update: null,
-              fullData: {}
+              fullData: {},
             } as SearchResult;
           }
         })
       );
 
       await saveResults(newResults);
-      results.value.push(...newResults);
+      // Ajouter uniquement les nouveaux résultats qui n'existent pas déjà
+      newResults.forEach(result => {
+        if (!results.value.some(r => r.codereferent === result.codereferent)) {
+          results.value.push(result);
+        }
+      });
     }
-    
+
     return {
       results: results.value,
-      errors: []
+      errors: [],
     };
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+    const errorMessage =
+      error instanceof Error ? error.message : "Une erreur est survenue";
     return {
       results: [],
-      errors: [errorMessage]
+      errors: [errorMessage],
     };
   }
 };
 
-const getCachedResults = async (cipCodes: string[]) => {
+const getCachedResults = async (codereferents: string[]) => {
   const db = getFirestore();
-  const resultsRef = collection(db, 'api_search_history');
+  const resultsRef = collection(db, "api_search_history");
   const userId = authStore.user?.uid;
-  
+
   const cachedResults = new Map<string, SearchResult>();
-  const newCipCodes = new Set(cipCodes);
+  const newCipCodes = new Set(codereferents);
 
   // Récupérer les résultats existants
   const q = query(
     resultsRef,
-    where('userId', '==', userId),
-    where('cip_code', 'in', cipCodes)
+    where("userId", "==", userId),
+    where("codereferent", "in", codereferents)
   );
 
   const snapshot = await getDocs(q);
   snapshot.forEach((doc: DocumentData) => {
     const data = doc.data();
-    cachedResults.set(data.cip_code, {
+    cachedResults.set(data.codereferent, {
       ...data,
-      fromCache: true
+      fromCache: true,
     });
-    newCipCodes.delete(data.cip_code);
+    newCipCodes.delete(data.codereferent);
   });
 
   return {
-    cached: cachedResults,
-    newCodes: Array.from(newCipCodes)
+    cached: Array.from(cachedResults.values()),
+    newCodes: Array.from(newCipCodes),
   };
 };
 
 const saveResults = async (newResults: SearchResult[]) => {
   const db = getFirestore();
-  const resultsRef = collection(db, 'api_search_history');
+  const resultsRef = collection(db, "api_search_history");
   const userId = authStore.user?.uid;
 
   const batch = writeBatch(db);
-  
-  newResults.forEach(result => {
-    if (result.status === 'success') {
+
+  newResults.forEach((result) => {
+    if (result.status === "success") {
       const docRef = doc(resultsRef);
       batch.set(docRef, {
         userId,
-        cip_code: result.cip_code,
+        codereferent: result.codereferent,
         title: result.title,
         brand: result.brand,
         status: result.status,
         last_update: result.last_update,
         fullData: result.fullData,
-        searchDate: serverTimestamp()
+        searchDate: serverTimestamp(),
       });
     }
   });
@@ -1048,23 +1112,22 @@ const copyToClipboard = (content: string) => {
 };
 
 const handleDrop = async (event: DragEvent) => {
-  isDragging.value = false
-  const files = event.dataTransfer?.files
+  isDragging.value = false;
+  const files = event.dataTransfer?.files;
   if (!files?.length) {
-    toast.error('Aucun fichier déposé')
-    return
+    toast.error("Aucun fichier déposé");
+    return;
   }
 
-  const file = files[0]
-  const input = event.target as HTMLInputElement
-  if (input.type === 'file') {
-    input.files = files
+  const file = files[0];
+  const input = event.target as HTMLInputElement;
+  if (input.type === "file") {
+    input.files = files;
   }
-  await handleFileUpload({ target: { files: [file] } } as unknown as Event)
-}
+  await handleFileUpload({ target: { files: [file] } } as unknown as Event);
+};
 
 definePageMeta({
   middleware: ["auth-verified"],
 });
 </script>
-
