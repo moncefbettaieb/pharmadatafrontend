@@ -10,9 +10,27 @@
 </template>
 
 <script setup>
+import { useHead } from '#imports'
 import 'vue-toastification/dist/index.css'
 
 const config = useRuntimeConfig()
+
+useHead({
+  script: [
+    {
+      src: 'https://www.googletagmanager.com/gtag/js?id=G-4MPTRJ8W59',
+      async: true
+    },
+    {
+      children: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-4MPTRJ8W59');
+      `
+    }
+  ]
+})
 </script>
 
 <style>

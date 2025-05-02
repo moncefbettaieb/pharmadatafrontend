@@ -101,7 +101,7 @@
                 <div class="bg-gray-800 rounded-md p-4 mb-4">
                   <code class="text-green-400">
                     curl -X GET \<br />
-                    &nbsp;&nbsp;https://fournisseur-data.firebaseapp.com/api/v1/products/1234567890123
+                    &nbsp;&nbsp;https://pharmadataapi.fr/api/v1/products/1234567890123
                     \<br />
                     &nbsp;&nbsp;-H 'Authorization: Bearer votre_token_api'
                   </code>
@@ -227,7 +227,7 @@
                 <div class="bg-gray-800 rounded-md p-4 mb-4">
                   <code class="text-green-400">
                     curl -X GET \<br />
-                    &nbsp;&nbsp;'https://fournisseur-data.firebaseapp.com/api/v1/products?page=1&limit=20&category=Médicaments'
+                    &nbsp;&nbsp;'https://pharmadataapi.fr/api/v1/products?page=1&limit=20&category=Médicaments'
                     \<br />
                     &nbsp;&nbsp;-H 'Authorization: Bearer votre_token_api'
                   </code>
@@ -255,8 +255,7 @@
                 <div class="bg-gray-800 rounded-md p-4 mb-4">
                   <code class="text-green-400">
                     curl -X GET \<br />
-                    &nbsp;&nbsp;https://fournisseur-data.firebaseapp.com/api/v1/brands
-                    \<br />
+                    &nbsp;&nbsp;https://pharmadataapi.fr/api/v1/brands \<br />
                     &nbsp;&nbsp;-H 'Authorization: Bearer votre_token_api'
                   </code>
                 </div>
@@ -298,8 +297,7 @@
                 <div class="bg-gray-800 rounded-md p-4 mb-4">
                   <code class="text-green-400">
                     curl -X GET \<br />
-                    &nbsp;&nbsp;https://fournisseur-data.firebaseapp.com/api/v1/categories
-                    \<br />
+                    &nbsp;&nbsp;https://pharmadataapi.fr/api/v1/categories \<br />
                     &nbsp;&nbsp;-H 'Authorization: Bearer votre_token_api'
                   </code>
                 </div>

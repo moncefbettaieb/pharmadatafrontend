@@ -172,7 +172,12 @@ useHead({
         name: "PharmaData — Base de données pharmaceutiques",
         description:
           "API et fiches produits détaillées sur les médicaments et la parapharmacie pour les professionnels de santé et les éditeurs de S.I.",
-        license: "https://pharmadata.com/terms",
+        license: "https://pharmadataapi.fr/terms",
+        logo: "https://pharmadataapi.fr/branding/favicon-32.png",
+        creator: {
+          "@type": "Organization",
+          name: "GCD Consulting",
+        },
       }),
     },
   ],

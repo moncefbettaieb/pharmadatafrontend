@@ -11,19 +11,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Map des IDs de plans vers les IDs de prix Stripe
 const PRICE_MAP: { [key: string]: { monthly: string; annual: string } } = {
   basic: {
-    monthly: "price_1RJ2kKIwuUz7rCPAXeVMLGsU",
-    annual: "price_1RJ2kKIwuUz7rCPAjoJ6aN4f",
+    monthly: "price_1RJNatIXSD1y6wP4M6ExpaC5",
+    annual: "price_1RJNatIXSD1y6wP4k3x96Yxz",
   },
   pro: {
-    monthly: "price_1RJ2o6IwuUz7rCPAl3IfIfuK",
-    annual: "price_1RJ2o6IwuUz7rCPAbNozteYp",
+    monthly: "price_1RJNaqIXSD1y6wP4cegd5Uex",
+    annual: "price_1RJNaqIXSD1y6wP4neO2jL0j",
   },
   enterprise: {
-    monthly: "price_1RJ2rQIwuUz7rCPASWTwbJtz",
-    annual: "price_1RJ2rQIwuUz7rCPAVvywQ7y4",
+    monthly: "price_1RJNanIXSD1y6wP48KmWNped",
+    annual: "price_1RJNanIXSD1y6wP493vf5ddV",
   },
 };
-const LIFETIME_PRICE_ID = "price_1RJ2srIwuUz7rCPAFbHO3JhB";
+const LIFETIME_PRICE_ID = "price_1RJNajIXSD1y6wP4wieZXGpo";
 
 export const createSubscription = onCall(
   {
@@ -31,7 +31,8 @@ export const createSubscription = onCall(
     cors: [
       "https://pharmadata-frontend-staging-383194447870.europe-west9.run.app",
       "http://localhost:3000",
-      "*", // Autoriser toutes les origines pendant le développement
+      "https://pharmadataapi.fr",
+      "https://www.pharmadataapi.fr",
     ],
     maxInstances: 10,
     memory: "256MiB",
@@ -125,7 +126,8 @@ export const createLifetimeSession = onCall(
     cors: [
       "https://pharmadata-frontend-staging-383194447870.europe-west9.run.app",
       "http://localhost:3000",
-      "*",
+      "https://pharmadataapi.fr",
+      "https://www.pharmadataapi.fr",
     ],
     maxInstances: 10,
     memory: "256MiB",

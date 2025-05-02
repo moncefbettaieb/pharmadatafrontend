@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "fournisseur-data"
-  }
+    "default": "fournisseur-data",
+    "staging": "fournisseur-data",
+    "prod": "pharmadata-production"
+  },
+  "targets": {},
+  "etags": {}
 }
