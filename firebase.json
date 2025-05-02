@@ -18,6 +18,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "pharmadata-production",
     "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
@@ -148,6 +149,13 @@
       {
         "source": "/api/v1/stripe/webhook",
         "function": "handleStripeWebhook"
+      },
+      {
+        "source": "**",
+        "run": {
+          "serviceId": "pharmadata-frontend-prod",
+          "region": "europe-west9"
+        }
       }
     ]
   }

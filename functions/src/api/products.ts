@@ -852,14 +852,14 @@ export const listProductSlugs = onRequest(
       const slugs = snapshot.docs.map((doc) => {
         const ts = doc.get("last_update");
         let formattedDate;
-        
+
         if (ts?.toDate) {
           // Si c'est un Timestamp Firestore
           formattedDate = ts.toDate().toISOString().split("T")[0];
         } else if (ts instanceof Date) {
           // Si c'est déjà une Date
           formattedDate = ts.toISOString().split("T")[0];
-        } else if (typeof ts === 'string') {
+        } else if (typeof ts === "string") {
           // Si c'est une chaîne de caractères
           formattedDate = ts;
         }
