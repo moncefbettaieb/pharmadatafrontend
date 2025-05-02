@@ -29,10 +29,13 @@ RUN rm -rf node_modules package-lock.json
 RUN rm -rf .output 
 COPY package*.json ./
 RUN npm install
+COPY generate-sitmap.js ./
 
 # Copie des fichiers de l'application
 COPY . .
 
+# Génère le sitemap pendant le build
+RUN node generate-sitmap.js
 # Build de l'application
 RUN npm run build
 

@@ -171,7 +171,7 @@ Authorization: Bearer {{ apiStore.token || "votre_token" }}
                         class="flex-1 text-sm text-gray-900 overflow-x-auto break-all"
                       >
 curl -X GET \
-  https://fournisseur-data.firebaseapp.com/api/v1/products/7630019903042 \
+  https://pharmadataapi.fr/api/v1/products/7630019903042 \
   -H 'Authorization: Bearer {{ apiStore.token || "votre_token" }}'
                     </pre
                       >
@@ -702,8 +702,8 @@ const loadSearchHistory = async () => {
     });
 
     // Fusionner les nouveaux résultats avec les résultats existants
-    newResults.forEach(result => {
-      if (!results.value.some(r => r.codereferent === result.codereferent)) {
+    newResults.forEach((result) => {
+      if (!results.value.some((r) => r.codereferent === result.codereferent)) {
         results.value.push(result);
       }
     });
@@ -767,7 +767,7 @@ const copyToken = () => {
 
 const copyRequest = () => {
   const request = `curl -X GET \\
-  https://fournisseur-data.firebaseapp.com/api/v1/products/1234567890123 \\
+  https://pharmadataapi.fr/api/v1/products/1234567890123 \\
   -H 'Authorization: Bearer ${apiStore.token || "votre_token"}'`;
   navigator.clipboard.writeText(request);
   toast.info("Exemple de requête copié dans le presse-papier");
@@ -961,8 +961,8 @@ const processCipCodes = async (
 
     // Ajouter les résultats en cache à results
     cached.forEach((result) => {
-      if (!results.value.some(r => r.codereferent === result.codereferent)) {
-      results.value.push(result);
+      if (!results.value.some((r) => r.codereferent === result.codereferent)) {
+        results.value.push(result);
       }
     });
 
@@ -972,7 +972,7 @@ const processCipCodes = async (
         newCodes.map(async (cipCode) => {
           try {
             const response = await fetch(
-              `https://fournisseur-data.firebaseapp.com/api/v1/products/${cipCode}`,
+              `https://pharmadataapi.fr/api/v1/products/${cipCode}`,
               {
                 method: "GET",
                 headers: {
@@ -1010,8 +1010,10 @@ const processCipCodes = async (
 
       await saveResults(newResults);
       // Ajouter uniquement les nouveaux résultats qui n'existent pas déjà
-      newResults.forEach(result => {
-        if (!results.value.some(r => r.codereferent === result.codereferent)) {
+      newResults.forEach((result) => {
+        if (
+          !results.value.some((r) => r.codereferent === result.codereferent)
+        ) {
           results.value.push(result);
         }
       });

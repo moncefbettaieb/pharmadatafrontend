@@ -39,6 +39,7 @@ export const getProductFiles = onCall(
     cors: [
       "https://pharmadata-frontend-staging-383194447870.europe-west9.run.app",
       "https://pharmadataapi.fr",
+      "https://www.pharmadataapi.fr",
       "http://localhost:3000",
     ],
     maxInstances: 10,
@@ -208,17 +209,12 @@ export const getProductFiles = onCall(
               .fillColor(highlightColor)
               .text(productData.title || "", 50, 45, {
                 align: "center",
-                width: doc.page.width - 100
+                width: doc.page.width - 100,
               });
 
             // Ajouter le logo en haut à gauche et Pharma Data en dessous
             doc
-              .image(
-                "images/pharmadata_logo_128.png",
-                50,
-                35,
-                { width: 40 }
-              )
+              .image("images/pharmadata_logo_128.png", 50, 35, { width: 40 })
               .fontSize(12)
               .fillColor(primaryColor)
               .text("Pharma Data", 50, 80, { width: 100 });
@@ -377,12 +373,9 @@ export const getProductFiles = onCall(
             doc
               .fontSize(10)
               .fillColor("#6b7280")
-              .text(
-                `Généré le ${currentDate} via PharmaData`,
-                50,
-                doc.y,
-                { align: "left" }
-              );
+              .text(`Généré le ${currentDate} via PharmaData`, 50, doc.y, {
+                align: "left",
+              });
 
             doc.end();
           }
@@ -436,6 +429,8 @@ export const getProductFilesAsZip = onCall(
     cors: [
       "https://pharmadata-frontend-dev-383194447870.europe-west9.run.app",
       "https://pharmadata-frontend-staging-383194447870.europe-west9.run.app",
+      "https://pharmadataapi.fr",
+      "https://www.pharmadataapi.fr",
       "http://localhost:3000",
     ],
     maxInstances: 10,
